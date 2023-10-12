@@ -28,3 +28,18 @@ provider "aws" {
 module "remote_backend" {
   source = "./modules/remote-backend"
 }
+
+module "http_api" {
+  source = "./modules/api-gateway"
+  name   = "pseudopoll-http-api"
+}
+
+module "sfn_iam" {
+  source = "./modules/sfn-state-machine/iam"
+}
+
+module "poll_manager_microservice" {
+  source       = "./modules/microservices/poll-manager"
+  api_id       = module.http_api.api_id
+  sfn_role_arn = module.sfn_iam.iam_for_sfn_arn
+}
