@@ -1,5 +1,10 @@
-variable "api_id" {
-  description = "API identifier"
+variable "rest_api_id" {
+  description = "ID of the associated REST API"
+  type        = string
+}
+
+variable "parent_id" {
+  description = "ID of the parent API resource"
   type        = string
 }
 

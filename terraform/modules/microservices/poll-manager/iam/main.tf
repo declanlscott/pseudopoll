@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "api_to_sfn" {
   statement {
     effect = "Allow"
 
-    actions = ["states:StartExecution"]
+    actions = ["states:StartSyncExecution"]
 
     resources = [var.sfn_arn]
   }
