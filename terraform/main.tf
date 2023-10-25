@@ -54,6 +54,7 @@ module "lambda_iam" {
 module "api_authorizer" {
   source              = "./modules/api-gateway/authorizer"
   name                = "pseudopoll-authorizer"
+  function_name       = "pseudopoll-authorizer"
   rest_api_id         = module.rest_api.id
   lambda_role_arn     = module.lambda_iam.role_arn
   archive_source_file = "${path.module}/../backend/lambdas/authorizer/bin/bootstrap"

@@ -1,3 +1,8 @@
+variable "function_name" {
+  description = "Unique name for your custom authorizer's lambda function"
+  type        = string
+}
+
 variable "name" {
   description = "Name of the authorizer"
   type        = string
