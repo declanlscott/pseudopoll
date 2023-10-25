@@ -136,3 +136,5 @@ yarn-error.log
 # End of https://www.toptal.com/developers/gitignore/api/terraform,goland+all,vuejs
 
 .DS_Store
+
+**/bin/*

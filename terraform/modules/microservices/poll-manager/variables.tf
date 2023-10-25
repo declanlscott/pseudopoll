@@ -12,3 +12,8 @@ variable "sfn_role_arn" {
   description = "The Amazon Resource Name (ARN) of the IAM role to use for the state machine"
   type        = string
 }
+
+variable "custom_authorizer_id" {
+  description = "Custom authorizer id"
+  type        = string
+}

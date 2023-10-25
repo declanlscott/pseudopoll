@@ -4,6 +4,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.20.1"
     }
+
+    archive = {
+      source  = "hashicorp/archive"
+      version = "2.4.0"
+    }
   }
 
   ###################################################################
@@ -25,6 +30,10 @@ provider "aws" {
   region = "us-east-2"
 }
 
+provider "archive" {
+  # Configuration options
+}
+
 module "remote_backend" {
   source = "./modules/remote-backend"
 }
@@ -38,9 +47,26 @@ module "rest_api" {
   name   = "pseudopoll-rest-api"
 }
 
+module "lambda_iam" {
+  source = "./modules/lambda/iam"
+}
+
+module "api_authorizer" {
+  source              = "./modules/api-gateway/authorizer"
+  name                = "pseudopoll-authorizer"
+  rest_api_id         = module.rest_api.id
+  lambda_role_arn     = module.lambda_iam.role_arn
+  archive_source_file = "${path.module}/../backend/lambdas/authorizer/bin/bootstrap"
+  archive_output_path = "${path.module}/../backend/lambdas/authorizer/bin/authorizer.zip"
+  jwks_uri            = var.jwks_uri
+  audience            = var.audience
+  token_issuer        = var.token_issuer
+}
+
 module "poll_manager_microservice" {
-  source       = "./modules/microservices/poll-manager"
-  rest_api_id  = module.rest_api.id
-  parent_id    = module.rest_api.root_resource_id
-  sfn_role_arn = module.sfn_iam.iam_for_sfn_arn
+  source               = "./modules/microservices/poll-manager"
+  rest_api_id          = module.rest_api.id
+  parent_id            = module.rest_api.root_resource_id
+  sfn_role_arn         = module.sfn_iam.iam_for_sfn_arn
+  custom_authorizer_id = module.api_authorizer.id
 }

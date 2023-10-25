@@ -52,9 +52,10 @@ resource "aws_api_gateway_resource" "polls" {
 
 resource "aws_api_gateway_method" "post" {
   rest_api_id   = var.rest_api_id
-  authorization = "NONE"
   http_method   = "POST"
   resource_id   = aws_api_gateway_resource.polls.id
+  authorization = "CUSTOM"
+  authorizer_id = var.custom_authorizer_id
 }
 
 resource "aws_api_gateway_integration" "create_poll" {
