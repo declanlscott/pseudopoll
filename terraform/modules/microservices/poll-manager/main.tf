@@ -4,39 +4,7 @@ module "poll_manager_workflow" {
   type     = "EXPRESS"
   role_arn = var.sfn_role_arn
 
-  definition = <<-EOT
-    {
-      "Comment": "Poll manager workflow",
-      "StartAt": "Choice",
-      "States": {
-        "Choice": {
-          "Type": "Choice",
-          "Choices": [
-            {
-              "Variable": "$.action",
-              "StringEquals": "CREATE",
-              "Next": "Create"
-            },
-            {
-              "Variable": "$.action",
-              "StringEquals": "DELETE",
-              "Next": "Delete"
-            }
-          ],
-          "Default": "Fail"
-        },
-        "Create": {
-          "Type": "Succeed"
-        },
-        "Fail": {
-          "Type": "Fail"
-        },
-        "Delete": {
-          "Type": "Succeed"
-        }
-      }
-    }
-  EOT
+  definition = templatefile("${path.module}/workflow-definition.tftpl", {})
 }
 
 module "poll_manager_iam" {

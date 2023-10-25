@@ -1,0 +1,31 @@
+${jsonencode({
+  "Comment": "Poll manager workflow",
+  "StartAt": "Choice",
+  "States": {
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.action",
+          "StringEquals": "CREATE",
+          "Next": "Create"
+        },
+        {
+          "Variable": "$.action",
+          "StringEquals": "DELETE",
+          "Next": "Delete"
+        }
+      ],
+      "Default": "Fail"
+    },
+    "Create": {
+      "Type": "Succeed"
+    },
+    "Fail": {
+      "Type": "Fail"
+    },
+    "Delete": {
+      "Type": "Succeed"
+    }
+  }
+})}
