@@ -1,5 +1,4 @@
 output "id" {
-  # value = aws_apigatewayv2_api.http_api.id
   value = aws_api_gateway_rest_api.rest_api.id
 }
 

@@ -45,6 +45,8 @@ module "sfn_iam" {
 module "rest_api" {
   source = "./modules/api-gateway"
   name   = "pseudopoll-rest-api"
+
+  redeployment_trigger_hashes = concat([module.poll_manager_microservice.resources_hash])
 }
 
 module "lambda_iam" {
