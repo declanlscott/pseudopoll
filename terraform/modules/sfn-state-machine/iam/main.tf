@@ -21,12 +21,19 @@ data "aws_iam_policy_document" "sfn_logging" {
     effect = "Allow"
 
     actions = [
-      "logs:CreateLogGroup",
+      "logs:CreateLogDelivery",
       "logs:CreateLogStream",
+      "logs:GetLogDelivery",
+      "logs:UpdateLogDelivery",
+      "logs:DeleteLogDelivery",
+      "logs:ListLogDeliveries",
       "logs:PutLogEvents",
+      "logs:PutResourcePolicy",
+      "logs:DescribeResourcePolicies",
+      "logs:DescribeLogGroups"
     ]
 
-    resources = ["arn:aws:logs:*:*:*"]
+    resources = ["*"]
   }
 }
 

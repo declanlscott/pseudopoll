@@ -4,6 +4,12 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
   definition = var.definition
   type       = var.type
 
+  logging_configuration {
+    log_destination        = "${aws_cloudwatch_log_group.log_group_for_sfn.arn}:*"
+    include_execution_data = true
+    level                  = "ALL"
+  }
+
   depends_on = [aws_cloudwatch_log_group.log_group_for_sfn]
 }
 
