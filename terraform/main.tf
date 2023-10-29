@@ -38,13 +38,19 @@ module "remote_backend" {
   source = "./modules/remote-backend"
 }
 
+resource "aws_route53_zone" "zone" {
+  name = var.domain_name
+}
+
 module "sfn_iam" {
   source = "./modules/sfn-state-machine/iam"
 }
 
 module "rest_api" {
-  source = "./modules/api-gateway"
-  name   = "pseudopoll-rest-api"
+  source      = "./modules/api-gateway"
+  name        = "pseudopoll-rest-api"
+  domain_name = var.domain_name
+  zone_id     = aws_route53_zone.zone.zone_id
 
   redeployment_trigger_hashes = concat([module.poll_manager_microservice.resources_hash])
 }
