@@ -1,0 +1,4 @@
+{
+  "stateMachineArn": "${stateMachineArn}",
+  "input": "{\"method\":\"$util.escapeJavaScript($context.httpMethod)\",\"prompt\":$util.escapeJavaScript($input.json('$.prompt')).replaceAll("\\'", "'"),\"choices\":$util.escapeJavaScript($input.json('$.choices')).replaceAll("\\'", "'"),\"userId\":\"$util.escapeJavaScript($context.authorizer.principalId)\"}"
+}

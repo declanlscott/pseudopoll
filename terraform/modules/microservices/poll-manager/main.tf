@@ -69,13 +69,10 @@ resource "aws_api_gateway_integration" "create_poll" {
   credentials             = module.poll_manager_iam.credentials_arn
 
   request_templates = {
-    "application/json" = <<-EOT
-      #set($input = $input.json('$'))
-      {
-        "stateMachineArn": "${module.poll_manager_workflow.sfn_arn}",
-        "input": "$util.escapeJavaScript($input).replaceAll("\\'", "'")"
-      }
-    EOT
+    "application/json" = templatefile(
+      "${path.module}/templates/create-poll-mapping.tftpl",
+      { stateMachineArn = module.poll_manager_workflow.sfn_arn }
+    )
   }
 
   passthrough_behavior = "WHEN_NO_MATCH"
