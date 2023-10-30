@@ -18,6 +18,25 @@ resource "aws_api_gateway_stage" "v1" {
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
   deployment_id = aws_api_gateway_deployment.deployment.id
   stage_name    = "v1"
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.logging.arn
+    format = jsonencode({
+      requestId         = "$context.requestId",
+      extendedRequestId = "$context.extendedRequestId",
+      ip                = "$context.identity.sourceIp",
+      caller            = "$context.identity.caller",
+      user              = "$context.identity.user",
+      requestTime       = "$context.requestTime",
+      httpMethod        = "$context.httpMethod",
+      resourcePath      = "$context.resourcePath",
+      status            = "$context.status",
+      protocol          = "$context.protocol",
+      responseLength    = "$context.responseLength"
+    })
+  }
+
+  depends_on = [aws_cloudwatch_log_group.logging]
 }
 
 locals {
@@ -80,4 +99,9 @@ resource "aws_api_gateway_base_path_mapping" "mapping" {
   api_id      = aws_api_gateway_rest_api.rest_api.id
   stage_name  = aws_api_gateway_stage.v1.stage_name
   domain_name = aws_api_gateway_domain_name.domain_name.domain_name
+}
+
+resource "aws_cloudwatch_log_group" "logging" {
+  name              = "/aws/api-gateway/${aws_api_gateway_rest_api.rest_api.id}"
+  retention_in_days = 14
 }

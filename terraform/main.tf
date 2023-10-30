@@ -42,6 +42,10 @@ resource "aws_route53_zone" "zone" {
   name = var.domain_name
 }
 
+module "apigateway_iam" {
+  source = "./modules/api-gateway/iam"
+}
+
 module "sfn_iam" {
   source = "./modules/sfn-state-machine/iam"
 }
@@ -75,6 +79,7 @@ module "api_authorizer" {
 module "poll_manager_microservice" {
   source               = "./modules/microservices/poll-manager"
   rest_api_id          = module.rest_api.id
+  stage_name           = module.rest_api.stage_name
   parent_id            = module.rest_api.root_resource_id
   sfn_role_arn         = module.sfn_iam.iam_for_sfn_arn
   custom_authorizer_id = module.api_authorizer.id

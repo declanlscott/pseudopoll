@@ -3,6 +3,11 @@ variable "rest_api_id" {
   type        = string
 }
 
+variable "stage_name" {
+  description = "Name of the associated stage"
+  type        = string
+}
+
 variable "parent_id" {
   description = "ID of the parent API resource"
   type        = string

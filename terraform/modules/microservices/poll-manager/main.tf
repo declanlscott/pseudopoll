@@ -47,6 +47,18 @@ resource "aws_api_gateway_method" "post" {
   }
 }
 
+resource "aws_api_gateway_method_settings" "post" {
+  rest_api_id = var.rest_api_id
+  stage_name  = var.stage_name
+  method_path = "${aws_api_gateway_resource.polls.path_part}/${aws_api_gateway_method.post.http_method}"
+
+  settings {
+    logging_level      = "INFO"
+    metrics_enabled    = true
+    data_trace_enabled = true
+  }
+}
+
 resource "aws_api_gateway_integration" "create_poll" {
   rest_api_id             = var.rest_api_id
   resource_id             = aws_api_gateway_resource.polls.id
