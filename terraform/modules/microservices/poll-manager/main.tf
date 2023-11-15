@@ -105,3 +105,21 @@ resource "aws_api_gateway_method_response" "post_ok" {
     "application/json" = aws_api_gateway_model.poll.name
   }
 }
+
+resource "aws_dynamodb_table" "polls_table" {
+  name         = "pseudopoll-polls"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key  = "PollId"
+  range_key = "UserId"
+
+  attribute {
+    name = "PollId"
+    type = "S"
+  }
+
+  attribute {
+    name = "UserId"
+    type = "S"
+  }
+}

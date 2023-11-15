@@ -2,7 +2,7 @@ ${jsonencode({
   "$schema" = "http://json-schema.org/draft-04/schema#",
   title     = "Create Poll Schema",
   type      = "object",
-  required  = ["prompt", "choices"],
+  required  = ["prompt", "options"],
   properties = {
     prompt = {
       type        = "string",
@@ -10,9 +10,9 @@ ${jsonencode({
       maxLength   = 280,
       description = "The poll prompt",
     },
-    choices = {
+    options = {
       type        = "array",
-      description = "The choices to vote on",
+      description = "The options to vote on",
       items = {
         type      = "string",
         minLength = 1,
