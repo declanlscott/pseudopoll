@@ -47,7 +47,6 @@ data "aws_iam_policy_document" "sfn_to_ddb_tables" {
       "dynamodb:DeleteItem",
       "dynamodb:GetItem",
       "dynamodb:UpdateItem",
-      "dynamodb:BatchWriteItem",
     ]
 
     resources = var.ddb_table_arns
