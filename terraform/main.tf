@@ -46,8 +46,9 @@ module "apigateway_iam" {
   source = "./modules/api-gateway/iam"
 }
 
-module "sfn_iam" {
-  source = "./modules/sfn-state-machine/iam"
+module "poll_manager_sfn_role" {
+  source           = "./modules/sfn-state-machine/iam"
+  iam_for_sfn_name = "poll-manager-sfn-role"
 }
 
 module "rest_api" {
@@ -81,6 +82,7 @@ module "poll_manager_microservice" {
   rest_api_id          = module.rest_api.id
   stage_name           = module.rest_api.stage_name
   parent_id            = module.rest_api.root_resource_id
-  sfn_role_arn         = module.sfn_iam.iam_for_sfn_arn
+  sfn_role_arn         = module.poll_manager_sfn_role.iam_for_sfn_arn
+  sfn_role_name        = module.poll_manager_sfn_role.iam_for_sfn_name
   custom_authorizer_id = module.api_authorizer.id
 }

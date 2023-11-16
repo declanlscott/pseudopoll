@@ -4,12 +4,23 @@ module "poll_manager_workflow" {
   type     = "EXPRESS"
   role_arn = var.sfn_role_arn
 
-  definition = templatefile("${path.module}/templates/workflow-definition.tftpl", {})
+  definition = templatefile(
+    "${path.module}/templates/workflow-definition.tftpl",
+    {
+      pollsTable       = aws_dynamodb_table.polls_table.name,
+      pollOptionsTable = aws_dynamodb_table.poll_options_table.name
+    }
+  )
 }
 
 module "poll_manager_iam" {
-  source  = "./iam"
-  sfn_arn = module.poll_manager_workflow.sfn_arn
+  source        = "./iam"
+  sfn_arn       = module.poll_manager_workflow.sfn_arn
+  sfn_role_name = var.sfn_role_name
+  ddb_table_arns = [
+    aws_dynamodb_table.polls_table.arn,
+    aws_dynamodb_table.poll_options_table.arn
+  ]
 }
 
 resource "aws_api_gateway_resource" "polls" {
@@ -110,8 +121,13 @@ resource "aws_dynamodb_table" "polls_table" {
   name         = "pseudopoll-polls"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "PollId"
-  range_key = "UserId"
+  hash_key = "PollId"
+
+  global_secondary_index {
+    name            = "UserId-index"
+    hash_key        = "UserId"
+    projection_type = "ALL"
+  }
 
   attribute {
     name = "PollId"
@@ -120,6 +136,29 @@ resource "aws_dynamodb_table" "polls_table" {
 
   attribute {
     name = "UserId"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "poll_options_table" {
+  name         = "pseudopoll-poll-options"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key = "OptionId"
+
+  global_secondary_index {
+    name            = "PollId-index"
+    hash_key        = "PollId"
+    projection_type = "ALL"
+  }
+
+  attribute {
+    name = "OptionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "PollId"
     type = "S"
   }
 }

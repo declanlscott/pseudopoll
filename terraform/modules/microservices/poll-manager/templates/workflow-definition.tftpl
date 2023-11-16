@@ -1,24 +1,115 @@
 ${jsonencode({
   "Comment": "Poll manager workflow",
-  "StartAt": "Choice",
+  "StartAt": "Method",
   "States": {
-    "Choice": {
-      "Type": "Choice",
+    "Method": {
       "Choices": [
         {
-          "Variable": "$.method",
+          "Next": "Generate pollId",
           "StringEquals": "POST",
-          "Next": "POST"
+          "Variable": "$.method"
         },
         {
-          "Variable": "$.method",
+          "Next": "DELETE",
           "StringEquals": "DELETE",
-          "Next": "DELETE"
+          "Variable": "$.method"
         }
       ],
-      "Default": "FAIL"
+      "Default": "FAIL",
+      "Type": "Choice"
     },
-    "POST": {
+    "Generate pollId": {
+      "Next": "Format poll option put requests",
+      "Parameters": {
+        "S.$": "States.UUID()"
+      },
+      "ResultPath": "$.pollId",
+      "Type": "Pass"
+    },
+    "Format poll option put requests": {
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Poll options JSON formatter",
+        "States": {
+          "Poll options JSON formatter": {
+            "End": true,
+            "Parameters": {
+              "PutRequest": {
+                "Item": {
+                  "OptionId": {
+                    "S.$": "States.UUID()"
+                  },
+                  "PollId.$": "$.pollId",
+                  "Text": {
+                    "S.$": "$.text"
+                  },
+                  "UpdatedAt": {
+                    "S.$": "$$.Execution.StartTime"
+                  },
+                  "Votes": {
+                    "N": "0"
+                  }
+                }
+              }
+            },
+            "Type": "Pass"
+          }
+        }
+      },
+      "ItemsPath": "$.options",
+      "Next": "BatchWriteItem",
+      "Parameters": {
+        "pollId.$": "$.pollId",
+        "text.$": "$$.Map.Item.Value"
+      },
+      "ResultPath": "$.pollOptionPutRequests",
+      "Type": "Map"
+    },
+    "BatchWriteItem": {
+      "Next": "Poll created",
+      "Parameters": {
+        "RequestItems": {
+          "${pollOptionsTable}.$": "$.pollOptionPutRequests",
+          "${pollsTable}": [
+            {
+              "PutRequest": {
+                "Item": {
+                  "CreatedAt": {
+                    "S.$": "$$.Execution.StartTime"
+                  },
+                  "Options": {
+                    "Ss.$": "$.options"
+                  },
+                  "PollId.$": "$.pollId",
+                  "Prompt": {
+                    "S.$": "$.prompt"
+                  },
+                  "UserId": {
+                    "S.$": "$.userId"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem",
+      "Type": "Task",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ],
+      "TimeoutSeconds": 10,
+    },
+    "Poll created": {
       "Type": "Succeed"
     },
     "DELETE": {

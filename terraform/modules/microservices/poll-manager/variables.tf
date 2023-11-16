@@ -14,7 +14,12 @@ variable "parent_id" {
 }
 
 variable "sfn_role_arn" {
-  description = "The Amazon Resource Name (ARN) of the IAM role to use for the state machine"
+  description = "The Amazon Resource Name (ARN) of the IAM role for the state machine"
+  type        = string
+}
+
+variable "sfn_role_name" {
+  description = "The name of the IAM role for the state machine"
   type        = string
 }
 
