@@ -21,34 +21,50 @@ ${jsonencode({
     "Generate pollId": {
       "Next": "Write poll",
       "Parameters": {
-        "S.$": "States.UUID()"
+        "value.$": "States.UUID()"
       },
       "ResultPath": "$.pollId",
       "Type": "Pass"
     },
     "Write poll": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
         "TableName": "${pollsTable}",
-        "Item": {
-          "CreatedAt": {
-            "S.$": "$$.Execution.StartTime"
+        "Key": {
+          "PollId": {
+            "S.$": "$.pollId.value"
+          }
+        },
+        "UpdateExpression": "SET #userId = :userId, #prompt = :prompt, #options = :options, #createdAt = :createdAt, #duration = :duration",
+        "ExpressionAttributeNames": {
+          "#userId": "UserId",
+          "#prompt": "Prompt",
+          "#options": "Options",
+          "#createdAt": "CreatedAt",
+          "#duration": "Duration"
+        },
+        "ExpressionAttributeValues": {
+          ":userId": {
+            "S.$": "$.userId"
           },
-          "Options": {
-            "SS.$": "$.options"
-          },
-          "PollId.$": "$.pollId",
-          "Prompt": {
+          ":prompt": {
             "S.$": "$.prompt"
           },
-          "UserId": {
-            "S.$": "$.userId"
+          ":options": {
+            "SS.$": "$.options"
+          },
+          ":createdAt": {
+            "S.$": "$$.Execution.StartTime"
+          },
+          ":duration": {
+            "N.$": "$.duration"
           }
-        }
+        },
+        "ReturnValues": "ALL_NEW"
       },
       "Next": "Write poll options",
-      "ResultPath": "$.writePollOutput",
+      "ResultPath": "$.pollOutput",
       "Retry": [
         {
           "ErrorEquals": [
@@ -70,26 +86,37 @@ ${jsonencode({
         "States": {
           "Write poll option": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
             "Parameters": {
               "TableName": "${pollOptionsTable}",
-              "Item": {
+              "Key": {
                 "OptionId": {
                   "S.$": "States.UUID()"
+                }
+              },
+              "UpdateExpression": "SET #pollId = :pollId, #text = :text, #updatedAt = :updatedAt, #votes = :votes",
+              "ExpressionAttributeNames": {
+                "#pollId": "PollId",
+                "#text": "Text",
+                "#updatedAt": "UpdatedAt",
+                "#votes": "Votes"
+              },
+              "ExpressionAttributeValues": {
+                ":pollId": {
+                  "S.$": "$.pollId"
                 },
-                "PollId.$": "$.pollId",
-                "Text": {
+                ":text": {
                   "S.$": "$.text"
                 },
-                "UpdatedAt": {
+                ":updatedAt": {
                   "S.$": "$$.Execution.StartTime"
                 },
-                "Votes": {
+                ":votes": {
                   "N": "0"
                 }
-              }
+              },
+              "ReturnValues": "ALL_NEW"
             },
-            "End": true,
             "Retry": [
               {
                 "ErrorEquals": [
@@ -99,14 +126,15 @@ ${jsonencode({
                 "IntervalSeconds": 1,
                 "MaxAttempts": 3
               }
-            ]
+            ],
+            "End": true
           }
         }
       },
       "ItemsPath": "$.options",
       "Next": "Poll created",
       "Parameters": {
-        "pollId.$": "$.pollId",
+        "pollId.$": "$.pollId.value",
         "text.$": "$$.Map.Item.Value"
       },
       "ResultPath": "$.writePollOptionsOutput"
