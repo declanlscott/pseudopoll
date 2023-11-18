@@ -1,4 +1,4 @@
-${jsonencode({
+{
   "Comment": "Poll manager workflow",
   "StartAt": "Method",
   "States": {
@@ -67,9 +67,7 @@ ${jsonencode({
       "ResultPath": "$.pollOutput",
       "Retry": [
         {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
+          "ErrorEquals": ["States.ALL"],
           "BackoffRate": 2,
           "IntervalSeconds": 1,
           "MaxAttempts": 3
@@ -119,9 +117,7 @@ ${jsonencode({
             },
             "Retry": [
               {
-                "ErrorEquals": [
-                  "States.ALL"
-                ],
+                "ErrorEquals": ["States.ALL"],
                 "BackoffRate": 2,
                 "IntervalSeconds": 1,
                 "MaxAttempts": 3
@@ -149,4 +145,4 @@ ${jsonencode({
       "Type": "Fail"
     }
   }
-})}
+}

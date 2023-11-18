@@ -5,7 +5,7 @@ module "poll_manager_workflow" {
   role_arn = var.sfn_role_arn
 
   definition = templatefile(
-    "${path.module}/templates/workflow-definition.tftpl",
+    "${path.module}/templates/workflow.json",
     {
       pollsTable   = aws_dynamodb_table.polls_table.name,
       optionsTable = aws_dynamodb_table.options_table.name
@@ -35,7 +35,7 @@ resource "aws_api_gateway_model" "create_poll" {
   description  = "Create poll schema"
   content_type = "application/json"
 
-  schema = templatefile("${path.module}/templates/create-poll-model.tftpl", {})
+  schema = templatefile("${path.module}/templates/models/create-poll.json", {})
 }
 
 resource "aws_api_gateway_request_validator" "create_poll" {
@@ -81,7 +81,7 @@ resource "aws_api_gateway_integration" "create_poll" {
 
   request_templates = {
     "application/json" = templatefile(
-      "${path.module}/templates/create-poll-mapping.tftpl",
+      "${path.module}/templates/mappings/create-poll.vm",
       { stateMachineArn = module.poll_manager_workflow.sfn_arn }
     )
   }
@@ -97,7 +97,7 @@ resource "aws_api_gateway_integration_response" "create_poll_ok" {
   status_code = aws_api_gateway_method_response.post_ok.status_code
 
   response_templates = {
-    "application/json" = templatefile("${path.module}/templates/poll-mapping.tftpl", {})
+    "application/json" = templatefile("${path.module}/templates/mappings/poll.vm", {})
   }
 }
 
@@ -107,7 +107,7 @@ resource "aws_api_gateway_model" "poll" {
   description  = "Poll schema"
   content_type = "application/json"
 
-  schema = templatefile("${path.module}/templates/poll-model.tftpl", {})
+  schema = templatefile("${path.module}/templates/models/poll.json", {})
 }
 
 resource "aws_api_gateway_method_response" "post_ok" {
