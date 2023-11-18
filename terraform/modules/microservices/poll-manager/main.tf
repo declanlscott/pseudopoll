@@ -7,8 +7,8 @@ module "poll_manager_workflow" {
   definition = templatefile(
     "${path.module}/templates/workflow-definition.tftpl",
     {
-      pollsTable       = aws_dynamodb_table.polls_table.name,
-      pollOptionsTable = aws_dynamodb_table.poll_options_table.name
+      pollsTable   = aws_dynamodb_table.polls_table.name,
+      optionsTable = aws_dynamodb_table.options_table.name
     }
   )
 }
@@ -19,7 +19,7 @@ module "poll_manager_iam" {
   sfn_role_name = var.sfn_role_name
   ddb_table_arns = [
     aws_dynamodb_table.polls_table.arn,
-    aws_dynamodb_table.poll_options_table.arn
+    aws_dynamodb_table.options_table.arn
   ]
 }
 
@@ -95,6 +95,10 @@ resource "aws_api_gateway_integration_response" "create_poll_ok" {
   resource_id = aws_api_gateway_resource.polls.id
   http_method = aws_api_gateway_integration.create_poll.http_method
   status_code = aws_api_gateway_method_response.post_ok.status_code
+
+  response_templates = {
+    "application/json" = templatefile("${path.module}/templates/poll-mapping.tftpl", {})
+  }
 }
 
 resource "aws_api_gateway_model" "poll" {
@@ -140,8 +144,8 @@ resource "aws_dynamodb_table" "polls_table" {
   }
 }
 
-resource "aws_dynamodb_table" "poll_options_table" {
-  name         = "pseudopoll-poll-options"
+resource "aws_dynamodb_table" "options_table" {
+  name         = "pseudopoll-options"
   billing_mode = "PAY_PER_REQUEST"
 
   hash_key = "OptionId"

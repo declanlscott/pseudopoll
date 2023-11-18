@@ -1,0 +1,19 @@
+#set($inputRoot = $util.parseJson($input.path('$.output')))
+{
+  "pollId": "$inputRoot.pollOutput.Attributes.PollId.S",
+  "userId": "$inputRoot.pollOutput.Attributes.UserId.S",
+  "prompt": "$inputRoot.pollOutput.Attributes.Prompt.S",
+  "options": [
+    #foreach($element in $inputRoot.optionsOutput)
+      {
+        "optionId": "$element.Attributes.OptionId.S",
+        "pollId": "$element.Attributes.PollId.S",
+        "text": "$element.Attributes.Text.S",
+        "votes": $element.Attributes.Votes.N,
+        "updatedAt": "$element.Attributes.UpdatedAt.S"
+      }#if($foreach.hasNext),#end
+    #end
+  ],
+  "createdAt": "$inputRoot.pollOutput.Attributes.CreatedAt.S",
+  "duration": $inputRoot.pollOutput.Attributes.Duration.N
+}

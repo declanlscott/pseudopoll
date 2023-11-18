@@ -88,7 +88,7 @@ ${jsonencode({
             "Type": "Task",
             "Resource": "arn:aws:states:::dynamodb:updateItem",
             "Parameters": {
-              "TableName": "${pollOptionsTable}",
+              "TableName": "${optionsTable}",
               "Key": {
                 "OptionId": {
                   "S.$": "States.UUID()"
@@ -137,7 +137,7 @@ ${jsonencode({
         "pollId.$": "$.pollId.value",
         "text.$": "$$.Map.Item.Value"
       },
-      "ResultPath": "$.writePollOptionsOutput"
+      "ResultPath": "$.optionsOutput"
     },
     "Poll created": {
       "Type": "Succeed"
