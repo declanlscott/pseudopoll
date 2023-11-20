@@ -46,11 +46,6 @@ module "apigateway_iam" {
   source = "./modules/api-gateway/iam"
 }
 
-module "poll_manager_sfn_role" {
-  source           = "./modules/sfn-state-machine/iam"
-  iam_for_sfn_name = "poll-manager-sfn-role"
-}
-
 module "rest_api" {
   source      = "./modules/api-gateway"
   name        = "pseudopoll-rest-api"
@@ -60,16 +55,11 @@ module "rest_api" {
   redeployment_trigger_hashes = concat([module.poll_manager_microservice.resources_hash])
 }
 
-module "lambda_iam" {
-  source = "./modules/lambda/iam"
-}
-
 module "api_authorizer" {
   source              = "./modules/api-gateway/authorizer"
   name                = "pseudopoll-authorizer"
   function_name       = "pseudopoll-authorizer"
   rest_api_id         = module.rest_api.id
-  lambda_role_arn     = module.lambda_iam.role_arn
   archive_source_file = "${path.module}/../backend/lambdas/authorizer/bin/bootstrap"
   archive_output_path = "${path.module}/../backend/lambdas/authorizer/bin/authorizer.zip"
   jwks_uri            = var.jwks_uri
@@ -82,7 +72,6 @@ module "poll_manager_microservice" {
   rest_api_id          = module.rest_api.id
   stage_name           = module.rest_api.stage_name
   parent_id            = module.rest_api.root_resource_id
-  sfn_role_arn         = module.poll_manager_sfn_role.iam_for_sfn_arn
-  sfn_role_name        = module.poll_manager_sfn_role.iam_for_sfn_name
   custom_authorizer_id = module.api_authorizer.id
+  nanoid_length        = var.nanoid_length
 }

@@ -30,3 +30,8 @@ resource "aws_iam_role_policy" "invocation_policy" {
   role   = aws_iam_role.invocation_role.id
   policy = data.aws_iam_policy_document.invocation_policy.json
 }
+
+module "lambda_role" {
+  source    = "../../../lambda/iam"
+  role_name = "pseudopoll-authorizer-lambda-role"
+}

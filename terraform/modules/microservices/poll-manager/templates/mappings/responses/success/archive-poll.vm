@@ -1,0 +1,5 @@
+#set($inputRoot = $util.parseJson($input.path('$.output')))
+{
+  "pollId": "$inputRoot.pollOutput.Attributes.PollId.S",
+  "archived": $inputRoot.pollOutput.Attributes.Archived.BOOL,
+}

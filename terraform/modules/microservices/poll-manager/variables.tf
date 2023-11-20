@@ -13,17 +13,12 @@ variable "parent_id" {
   type        = string
 }
 
-variable "sfn_role_arn" {
-  description = "The Amazon Resource Name (ARN) of the IAM role for the state machine"
-  type        = string
-}
-
-variable "sfn_role_name" {
-  description = "The name of the IAM role for the state machine"
-  type        = string
-}
-
 variable "custom_authorizer_id" {
   description = "Custom authorizer id"
   type        = string
+}
+
+variable "nanoid_length" {
+  description = "Length of the nanoid"
+  type        = number
 }

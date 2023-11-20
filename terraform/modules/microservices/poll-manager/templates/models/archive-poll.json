@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Delete Poll Schema",
+  "type": "object",
+  "required": ["pollId"],
+  "properties": {
+    "pollId": {
+      "type": "string",
+      "minLength": ${nanoIdLength},
+      "maxLength": ${nanoIdLength}
+    }
+  }
+}

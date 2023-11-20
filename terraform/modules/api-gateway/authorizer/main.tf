@@ -1,7 +1,7 @@
 module "authorizer_lambda" {
   source              = "../../lambda"
   function_name       = var.function_name
-  role_arn            = var.lambda_role_arn
+  role_arn            = module.authorizer_iam.lambda_role_arn
   archive_source_file = var.archive_source_file
   archive_output_path = var.archive_output_path
 

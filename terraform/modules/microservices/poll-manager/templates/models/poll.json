@@ -13,13 +13,11 @@
   "properties": {
     "pollId": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 36
+      "minLength": ${nanoIdLength},
+      "maxLength": ${nanoIdLength}
     },
     "userId": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 36
+      "type": "string"
     },
     "prompt": {
       "type": "string",
@@ -36,13 +34,13 @@
         "properties": {
           "optionId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 36
+            "minLength": ${nanoIdLength},
+            "maxLength": ${nanoIdLength}
           },
           "pollId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 36
+            "minLength": ${nanoIdLength},
+            "maxLength": ${nanoIdLength}
           },
           "text": {
             "type": "string",

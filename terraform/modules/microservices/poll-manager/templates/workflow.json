@@ -5,66 +5,75 @@
     "Method": {
       "Choices": [
         {
-          "Next": "Generate pollId",
+          "Next": "Create poll",
           "StringEquals": "POST",
           "Variable": "$.method"
         },
         {
-          "Next": "DELETE",
+          "Next": "Archive poll",
           "StringEquals": "DELETE",
           "Variable": "$.method"
         }
       ],
-      "Default": "FAIL",
+      "Default": "Invalid method",
       "Type": "Choice"
     },
-    "Generate pollId": {
-      "Next": "Write poll",
+    "Create poll": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
-        "value.$": "States.UUID()"
+        "FunctionName": "${createPollLambdaArn}",
+        "Payload.$": "$"
       },
-      "ResultPath": "$.pollId",
-      "Type": "Pass"
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Poll created"
     },
-    "Write poll": {
+    "Poll created": {
+      "Type": "Succeed"
+    },
+    "Archive poll": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
         "TableName": "${pollsTable}",
         "Key": {
           "PollId": {
-            "S.$": "$.pollId.value"
+            "S.$": "$.pollId"
           }
         },
-        "UpdateExpression": "SET #userId = :userId, #prompt = :prompt, #options = :options, #createdAt = :createdAt, #duration = :duration",
+        "ConditionExpression": "#userId = :userId AND #archived = :unarchived",
+        "UpdateExpression": "SET #archived = :archived",
         "ExpressionAttributeNames": {
           "#userId": "UserId",
-          "#prompt": "Prompt",
-          "#options": "Options",
-          "#createdAt": "CreatedAt",
-          "#duration": "Duration"
+          "#archived": "Archived"
         },
         "ExpressionAttributeValues": {
           ":userId": {
             "S.$": "$.userId"
           },
-          ":prompt": {
-            "S.$": "$.prompt"
+          ":unarchived": {
+            "BOOL": false
           },
-          ":options": {
-            "SS.$": "$.options"
-          },
-          ":createdAt": {
-            "S.$": "$$.Execution.StartTime"
-          },
-          ":duration": {
-            "N.$": "$.duration"
+          ":archived": {
+            "BOOL": true
           }
         },
         "ReturnValues": "ALL_NEW"
       },
-      "Next": "Write poll options",
-      "ResultPath": "$.pollOutput",
+      "Next": "Poll archived",
       "Retry": [
         {
           "ErrorEquals": ["States.ALL"],
@@ -72,77 +81,25 @@
           "IntervalSeconds": 1,
           "MaxAttempts": 3
         }
+      ],
+      "ResultPath": "$.pollOutput",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "Poll archival failed"
+        }
       ]
     },
-    "Write poll options": {
-      "Type": "Map",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
-        "StartAt": "Write poll option",
-        "States": {
-          "Write poll option": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::dynamodb:updateItem",
-            "Parameters": {
-              "TableName": "${optionsTable}",
-              "Key": {
-                "OptionId": {
-                  "S.$": "States.UUID()"
-                }
-              },
-              "UpdateExpression": "SET #pollId = :pollId, #text = :text, #updatedAt = :updatedAt, #votes = :votes",
-              "ExpressionAttributeNames": {
-                "#pollId": "PollId",
-                "#text": "Text",
-                "#updatedAt": "UpdatedAt",
-                "#votes": "Votes"
-              },
-              "ExpressionAttributeValues": {
-                ":pollId": {
-                  "S.$": "$.pollId"
-                },
-                ":text": {
-                  "S.$": "$.text"
-                },
-                ":updatedAt": {
-                  "S.$": "$$.Execution.StartTime"
-                },
-                ":votes": {
-                  "N": "0"
-                }
-              },
-              "ReturnValues": "ALL_NEW"
-            },
-            "Retry": [
-              {
-                "ErrorEquals": ["States.ALL"],
-                "BackoffRate": 2,
-                "IntervalSeconds": 1,
-                "MaxAttempts": 3
-              }
-            ],
-            "End": true
-          }
-        }
-      },
-      "ItemsPath": "$.options",
-      "Next": "Poll created",
-      "Parameters": {
-        "pollId.$": "$.pollId.value",
-        "text.$": "$$.Map.Item.Value"
-      },
-      "ResultPath": "$.optionsOutput"
-    },
-    "Poll created": {
+    "Poll archived": {
       "Type": "Succeed"
     },
-    "DELETE": {
-      "Type": "Succeed"
-    },
-    "FAIL": {
+    "Invalid method": {
       "Type": "Fail"
+    },
+    "Poll archival failed": {
+      "Type": "Fail",
+      "ErrorPath": "$.Error",
+      "CausePath": "$.Cause"
     }
   }
 }
