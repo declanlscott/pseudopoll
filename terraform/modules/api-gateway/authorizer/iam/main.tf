@@ -35,3 +35,8 @@ module "lambda_role" {
   source    = "../../../lambda/iam"
   role_name = "pseudopoll-authorizer-lambda-role"
 }
+
+resource "aws_iam_role_policy_attachment" "logging" {
+  role       = module.lambda_role.role_name
+  policy_arn = var.lambda_logging_policy_arn
+}

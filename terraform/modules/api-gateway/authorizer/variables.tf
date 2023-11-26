@@ -34,3 +34,8 @@ variable "audience" {
 variable "token_issuer" {
   type = string
 }
+
+variable "lambda_logging_policy_arn" {
+  description = "ARN of the Lambda logging policy"
+  type        = string
+}

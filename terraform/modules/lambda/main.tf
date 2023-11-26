@@ -16,4 +16,11 @@ resource "aws_lambda_function" "function" {
   environment {
     variables = var.environment_variables
   }
+
+  depends_on = [aws_cloudwatch_log_group.log_group]
+}
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = 14
 }

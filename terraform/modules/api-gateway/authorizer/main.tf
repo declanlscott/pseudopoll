@@ -13,8 +13,9 @@ module "authorizer_lambda" {
 }
 
 module "authorizer_iam" {
-  source                = "./iam"
-  authorizer_lambda_arn = module.authorizer_lambda.arn
+  source                    = "./iam"
+  authorizer_lambda_arn     = module.authorizer_lambda.arn
+  lambda_logging_policy_arn = var.lambda_logging_policy_arn
 }
 
 resource "aws_api_gateway_authorizer" "authorizer" {

@@ -1,4 +1,0 @@
-{
-  "stateMachineArn": "${stateMachineArn}",
-  "input": "{\"method\":\"$util.escapeJavaScript($context.httpMethod)\",\"pollId\":$util.escapeJavaScript($input.json('$.pollId')),\"userId\":\"$util.escapeJavaScript($context.authorizer.principalId)\"}"
-}

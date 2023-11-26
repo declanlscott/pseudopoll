@@ -1,34 +1,3 @@
-module "sfn_role" {
-  source    = "../../sfn-state-machine/iam"
-  role_name = "pseudopoll-poll-manager-sfn-role"
-}
-
-module "poll_manager_workflow" {
-  source   = "../../sfn-state-machine"
-  name     = "poll-manager"
-  type     = "EXPRESS"
-  role_arn = module.sfn_role.role_arn
-
-  definition = templatefile(
-    "${path.module}/templates/workflow.json",
-    {
-      pollsTable          = aws_dynamodb_table.polls_table.name,
-      optionsTable        = aws_dynamodb_table.options_table.name
-      createPollLambdaArn = module.create_poll_lambda.arn
-    }
-  )
-}
-
-module "poll_manager_iam" {
-  source        = "./iam"
-  sfn_arn       = module.poll_manager_workflow.sfn_arn
-  sfn_role_name = module.sfn_role.role_name
-  ddb_table_arns = [
-    aws_dynamodb_table.polls_table.arn,
-    aws_dynamodb_table.options_table.arn
-  ]
-}
-
 resource "aws_api_gateway_resource" "polls" {
   rest_api_id = var.rest_api_id
   parent_id   = var.parent_id
@@ -80,6 +49,15 @@ resource "aws_api_gateway_request_validator" "archive_poll" {
   validate_request_body = true
 }
 
+resource "aws_api_gateway_model" "error" {
+  rest_api_id  = var.rest_api_id
+  name         = "Error"
+  description  = "Error schema"
+  content_type = "application/json"
+
+  schema = templatefile("${path.module}/templates/models/error.json", {})
+}
+
 resource "aws_api_gateway_method" "post" {
   rest_api_id = var.rest_api_id
   http_method = "POST"
@@ -111,49 +89,27 @@ resource "aws_api_gateway_integration" "create_poll" {
   resource_id             = aws_api_gateway_resource.polls.id
   http_method             = aws_api_gateway_method.post.http_method
   integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = "arn:aws:apigateway:us-east-2:states:action/StartSyncExecution"
-  credentials             = module.poll_manager_iam.credentials_arn
-
-  request_templates = {
-    "application/json" = templatefile(
-      "${path.module}/templates/mappings/requests/create-poll.vm",
-      { stateMachineArn = module.poll_manager_workflow.sfn_arn }
-    )
-  }
-
-  passthrough_behavior = "WHEN_NO_MATCH"
+  type                    = "AWS_PROXY"
+  uri                     = module.create_poll_lambda.invoke_arn
 }
 
-data "aws_iam_policy_document" "create_poll_sfn_lambda" {
-  statement {
-    effect = "Allow"
+resource "aws_lambda_permission" "create_poll_api_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.create_poll_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
 
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = [
-      module.create_poll_lambda.arn
-    ]
-  }
-}
-
-resource "aws_iam_policy" "create_poll_sfn_lambda" {
-  name        = "pseudopoll-create-poll-sfn-lambda"
-  description = "IAM policy for poll manager step function to invoke create poll lambda"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.create_poll_sfn_lambda.json
-}
-
-resource "aws_iam_role_policy_attachment" "create_poll_sfn_lambda" {
-  role       = module.sfn_role.role_name
-  policy_arn = aws_iam_policy.create_poll_sfn_lambda.arn
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.post.http_method}${aws_api_gateway_resource.polls.path}"
 }
 
 module "create_poll_lambda_role" {
   source    = "../../lambda/iam"
   role_name = "pseudopoll-create-poll-lambda-role"
+}
+
+resource "aws_iam_role_policy_attachment" "create_poll_logging" {
+  role       = module.create_poll_lambda_role.role_name
+  policy_arn = var.lambda_logging_policy_arn
 }
 
 data "aws_iam_policy_document" "create_poll_lambda_ddb" {
@@ -194,18 +150,8 @@ module "create_poll_lambda" {
   environment_variables = {
     POLLS_TABLE_NAME   = aws_dynamodb_table.polls_table.name
     OPTIONS_TABLE_NAME = aws_dynamodb_table.options_table.name
+    NANOID_ALPHABET    = var.nanoid_alphabet
     NANOID_LENGTH      = "${var.nanoid_length}"
-  }
-}
-
-resource "aws_api_gateway_integration_response" "create_poll_created" {
-  rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
-  http_method = aws_api_gateway_integration.create_poll.http_method
-  status_code = aws_api_gateway_method_response.post_created.status_code
-
-  response_templates = {
-    "application/json" = templatefile("${path.module}/templates/mappings/responses/success/create-poll.vm", {})
   }
 }
 
@@ -217,6 +163,28 @@ resource "aws_api_gateway_method_response" "post_created" {
 
   response_models = {
     "application/json" = aws_api_gateway_model.poll.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "post_bad_request" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.polls.id
+  http_method = aws_api_gateway_method.post.http_method
+  status_code = "400"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "post_internal_server_error" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.polls.id
+  http_method = aws_api_gateway_method.post.http_method
+  status_code = "500"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
   }
 }
 
@@ -251,28 +219,60 @@ resource "aws_api_gateway_integration" "archive_poll" {
   resource_id             = aws_api_gateway_resource.polls.id
   http_method             = aws_api_gateway_method.delete.http_method
   integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = "arn:aws:apigateway:us-east-2:states:action/StartSyncExecution"
-  credentials             = module.poll_manager_iam.credentials_arn
-
-  request_templates = {
-    "application/json" = templatefile(
-      "${path.module}/templates/mappings/requests/archive-poll.vm",
-      { stateMachineArn = module.poll_manager_workflow.sfn_arn }
-    )
-  }
-
-  passthrough_behavior = "WHEN_NO_MATCH"
+  type                    = "AWS_PROXY"
+  uri                     = module.archive_poll_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration_response" "archive_poll_ok" {
-  rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
-  http_method = aws_api_gateway_integration.archive_poll.http_method
-  status_code = aws_api_gateway_method_response.delete_ok.status_code
+resource "aws_lambda_permission" "archive_poll_api_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.archive_poll_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
 
-  response_templates = {
-    "application/json" = templatefile("${path.module}/templates/mappings/responses/success/archive-poll.vm", {})
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.delete.http_method}${aws_api_gateway_resource.polls.path}"
+}
+
+module "archive_poll_lambda_role" {
+  source    = "../../lambda/iam"
+  role_name = "pseudopoll-archive-poll-lambda-role"
+}
+
+resource "aws_iam_role_policy_attachment" "archive_poll_logging" {
+  role       = module.archive_poll_lambda_role.role_name
+  policy_arn = var.lambda_logging_policy_arn
+}
+
+data "aws_iam_policy_document" "archive_poll_lambda_ddb" {
+  statement {
+    effect = "Allow"
+
+    actions = ["dynamodb:UpdateItem"]
+
+    resources = [aws_dynamodb_table.polls_table.arn]
+  }
+}
+
+resource "aws_iam_policy" "archive_poll_lambda_ddb" {
+  name        = "pseudopoll-archive-poll-lambda-ddb"
+  description = "IAM policy for archive poll lambda to write to DynamoDB"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.archive_poll_lambda_ddb.json
+}
+
+resource "aws_iam_role_policy_attachment" "archive_poll_lambda_ddb" {
+  role       = module.archive_poll_lambda_role.role_name
+  policy_arn = aws_iam_policy.archive_poll_lambda_ddb.arn
+}
+
+module "archive_poll_lambda" {
+  source              = "../../lambda"
+  function_name       = "pseudopoll-archive-poll"
+  role_arn            = module.archive_poll_lambda_role.role_arn
+  archive_source_file = "${path.module}/../../../../backend/lambdas/archive-poll/bin/bootstrap"
+  archive_output_path = "${path.module}/../../../../backend/lambdas/archive-poll/bin/archive-poll.zip"
+
+  environment_variables = {
+    POLLS_TABLE_NAME = aws_dynamodb_table.polls_table.name
   }
 }
 
@@ -280,10 +280,28 @@ resource "aws_api_gateway_method_response" "delete_ok" {
   rest_api_id = var.rest_api_id
   resource_id = aws_api_gateway_resource.polls.id
   http_method = aws_api_gateway_method.delete.http_method
-  status_code = 200
+  status_code = "204"
+}
+
+resource "aws_api_gateway_method_response" "delete_bad_request" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.polls.id
+  http_method = aws_api_gateway_method.delete.http_method
+  status_code = "400"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.poll.name
+    "application/json" = aws_api_gateway_model.error.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "delete_internal_server_error" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.polls.id
+  http_method = aws_api_gateway_method.delete.http_method
+  status_code = "500"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
   }
 }
 

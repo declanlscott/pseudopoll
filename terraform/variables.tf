@@ -14,6 +14,12 @@ variable "token_issuer" {
   type = string
 }
 
+variable "nanoid_alphabet" {
+  type        = string
+  description = "Alphabet used for nanoid generation"
+  default     = "0123456789abcdefghijklmnopqrstuvwxyz"
+}
+
 variable "nanoid_length" {
   type        = number
   description = "Length of the nanoid"
