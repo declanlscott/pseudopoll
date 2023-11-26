@@ -73,7 +73,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				Value: requestBody.Archived,
 			},
 		},
-		ReturnValues: "ALL_NEW",
 	}
 
 	_, err = ddb.UpdateItem(ctx, input)
