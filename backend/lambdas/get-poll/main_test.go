@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"testing"
 
@@ -12,17 +11,16 @@ import (
 func TestHandler(t *testing.T) {
 	ctx := context.Background()
 
-	requestBody, _ := json.Marshal(RequestBody{
-		PollId: os.Getenv("TEST_POLL_ID"),
-	})
-
 	mockRequest := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"pollId": os.Getenv("TEST_POLL_ID"),
+		},
 		RequestContext: events.APIGatewayProxyRequestContext{
 			Authorizer: map[string]interface{}{
 				"sub": os.Getenv("TEST_USER_ID"),
 			},
 		},
-		Body: string(requestBody),
+		IsBase64Encoded: false,
 	}
 
 	res, err := handler(ctx, mockRequest)

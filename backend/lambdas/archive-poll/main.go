@@ -15,8 +15,7 @@ import (
 )
 
 type RequestBody struct {
-	PollId   string `json:"pollId"`
-	Archived bool   `json:"archived"`
+	Archived bool `json:"archived"`
 }
 
 type Error struct {
@@ -55,7 +54,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
 			"PollId": &types.AttributeValueMemberS{
-				Value: requestBody.PollId,
+				Value: request.PathParameters["pollId"],
 			},
 		},
 		TableName:           aws.String(os.Getenv("POLLS_TABLE_NAME")),

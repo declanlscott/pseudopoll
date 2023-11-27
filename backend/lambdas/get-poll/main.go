@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 
@@ -14,10 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
-
-type RequestBody struct {
-	PollId string `json:"pollId"`
-}
 
 type DdbPoll struct {
 	PollId    string `dynamodbav:"PollId"`
@@ -68,13 +65,7 @@ func formatError(msg string, err error) string {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var requestBody RequestBody
-	if err := json.Unmarshal([]byte(request.Body), &requestBody); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       formatError("Bad request", err),
-		}, nil
-	}
+	pollId := request.PathParameters["pollId"]
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -90,7 +81,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"PollId": &types.AttributeValueMemberS{
-				Value: requestBody.PollId,
+				Value: pollId,
 			},
 		},
 	})
@@ -110,11 +101,22 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}, nil
 	}
 
-	if ddbPoll.Archived == true && ddbPoll.UserId != request.RequestContext.Authorizer["sub"].(string) {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusForbidden,
-			Body:       formatError("Forbidden", err),
-		}, nil
+	currentUserId := request.RequestContext.Authorizer["sub"]
+	if ddbPoll.Archived {
+		// NOTE: If this lambda is invoked by the `/public/polls/{pollId}` endpoint, the user will not be authenticated.
+		if currentUserId == nil {
+			return events.APIGatewayProxyResponse{
+				StatusCode: http.StatusUnauthorized,
+				Body:       formatError("Unauthorized", errors.New("user is not authenticated")),
+			}, nil
+		}
+
+		if ddbPoll.UserId != currentUserId {
+			return events.APIGatewayProxyResponse{
+				StatusCode: http.StatusForbidden,
+				Body:       formatError("Forbidden", errors.New("user is not authorized to access this poll")),
+			}, nil
+		}
 	}
 
 	optionsResult, err := ddb.Query(ctx, &dynamodb.QueryInput{
@@ -126,7 +128,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pollId": &types.AttributeValueMemberS{
-				Value: requestBody.PollId,
+				Value: pollId,
 			},
 		},
 	})
@@ -165,6 +167,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Duration:  ddbPoll.Duration,
 		Archived:  ddbPoll.Archived,
 	})
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       formatError("Internal server error", err),
+		}, nil
+	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,

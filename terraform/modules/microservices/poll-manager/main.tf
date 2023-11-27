@@ -4,6 +4,30 @@ resource "aws_api_gateway_resource" "polls" {
   path_part   = "polls"
 }
 
+resource "aws_api_gateway_resource" "poll" {
+  rest_api_id = var.rest_api_id
+  parent_id   = aws_api_gateway_resource.polls.id
+  path_part   = "{pollId}"
+}
+
+resource "aws_api_gateway_resource" "public" {
+  rest_api_id = var.rest_api_id
+  parent_id   = var.parent_id
+  path_part   = "public"
+}
+
+resource "aws_api_gateway_resource" "public_polls" {
+  rest_api_id = var.rest_api_id
+  parent_id   = aws_api_gateway_resource.public.id
+  path_part   = "polls"
+}
+
+resource "aws_api_gateway_resource" "public_poll" {
+  rest_api_id = var.rest_api_id
+  parent_id   = aws_api_gateway_resource.public_polls.id
+  path_part   = "{pollId}"
+}
+
 resource "aws_api_gateway_model" "poll" {
   rest_api_id  = var.rest_api_id
   name         = "Poll"
@@ -76,7 +100,7 @@ resource "aws_api_gateway_integration" "create_poll" {
 }
 
 resource "aws_lambda_permission" "create_poll_api_lambda" {
-  statement_id  = "AllowExecutionFromAPIGateway"
+  statement_id  = "PseudoPollAllowCreatePollLambdaExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   function_name = module.create_poll_lambda.function_name
   principal     = "apigateway.amazonaws.com"
@@ -176,10 +200,7 @@ resource "aws_api_gateway_model" "archive_poll" {
   description  = "Archive poll schema"
   content_type = "application/json"
 
-  schema = templatefile(
-    "${path.module}/templates/models/archive-poll.json",
-    { nanoIdLength = var.nanoid_length }
-  )
+  schema = templatefile("${path.module}/templates/models/archive-poll.json", {})
 }
 
 resource "aws_api_gateway_request_validator" "archive_poll" {
@@ -191,21 +212,16 @@ resource "aws_api_gateway_request_validator" "archive_poll" {
 resource "aws_api_gateway_method" "delete" {
   rest_api_id = var.rest_api_id
   http_method = "DELETE"
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
-
-  request_validator_id = aws_api_gateway_request_validator.archive_poll.id
-  request_models = {
-    "application/json" = aws_api_gateway_model.archive_poll.name
-  }
 }
 
 resource "aws_api_gateway_method_settings" "delete" {
   rest_api_id = var.rest_api_id
   stage_name  = var.stage_name
-  method_path = "${aws_api_gateway_resource.polls.path_part}/${aws_api_gateway_method.delete.http_method}"
+  method_path = "${aws_api_gateway_resource.poll.path_part}/${aws_api_gateway_method.delete.http_method}"
 
   settings {
     logging_level      = "INFO"
@@ -216,7 +232,7 @@ resource "aws_api_gateway_method_settings" "delete" {
 
 resource "aws_api_gateway_integration" "archive_poll" {
   rest_api_id             = var.rest_api_id
-  resource_id             = aws_api_gateway_resource.polls.id
+  resource_id             = aws_api_gateway_resource.poll.id
   http_method             = aws_api_gateway_method.delete.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
@@ -224,12 +240,12 @@ resource "aws_api_gateway_integration" "archive_poll" {
 }
 
 resource "aws_lambda_permission" "archive_poll_api_lambda" {
-  statement_id  = "AllowExecutionFromAPIGateway"
+  statement_id  = "PseudoPollAllowArchivePollLambdaExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   function_name = module.archive_poll_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.delete.http_method}${aws_api_gateway_resource.polls.path}"
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.delete.http_method}${aws_api_gateway_resource.poll.path}"
 }
 
 module "archive_poll_lambda_role" {
@@ -278,14 +294,14 @@ module "archive_poll_lambda" {
 
 resource "aws_api_gateway_method_response" "delete_ok" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.delete.http_method
   status_code = "204"
 }
 
 resource "aws_api_gateway_method_response" "delete_bad_request" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.delete.http_method
   status_code = "400"
 
@@ -296,7 +312,7 @@ resource "aws_api_gateway_method_response" "delete_bad_request" {
 
 resource "aws_api_gateway_method_response" "delete_internal_server_error" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.delete.http_method
   status_code = "500"
 
@@ -305,42 +321,19 @@ resource "aws_api_gateway_method_response" "delete_internal_server_error" {
   }
 }
 
-resource "aws_api_gateway_model" "get_poll" {
-  rest_api_id  = var.rest_api_id
-  name         = "GetPoll"
-  description  = "Get poll schema"
-  content_type = "application/json"
-
-  schema = templatefile(
-    "${path.module}/templates/models/get-poll.json",
-    { nanoIdLength = var.nanoid_length }
-  )
-}
-
-resource "aws_api_gateway_request_validator" "get_poll" {
-  name                  = "get-poll-validator"
-  rest_api_id           = var.rest_api_id
-  validate_request_body = true
-}
-
 resource "aws_api_gateway_method" "get" {
   rest_api_id = var.rest_api_id
   http_method = "GET"
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
-
-  request_validator_id = aws_api_gateway_request_validator.get_poll.id
-  request_models = {
-    "application/json" = aws_api_gateway_model.get_poll.name
-  }
 }
 
 resource "aws_api_gateway_method_settings" "get" {
   rest_api_id = var.rest_api_id
   stage_name  = var.stage_name
-  method_path = "${aws_api_gateway_resource.polls.path_part}/${aws_api_gateway_method.get.http_method}"
+  method_path = "${aws_api_gateway_resource.poll.path_part}/${aws_api_gateway_method.get.http_method}"
 
   settings {
     logging_level      = "INFO"
@@ -351,7 +344,7 @@ resource "aws_api_gateway_method_settings" "get" {
 
 resource "aws_api_gateway_integration" "get_poll" {
   rest_api_id             = var.rest_api_id
-  resource_id             = aws_api_gateway_resource.polls.id
+  resource_id             = aws_api_gateway_resource.poll.id
   http_method             = aws_api_gateway_method.get.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
@@ -359,12 +352,12 @@ resource "aws_api_gateway_integration" "get_poll" {
 }
 
 resource "aws_lambda_permission" "get_poll_api_lambda" {
-  statement_id  = "AllowExecutionFromAPIGateway"
+  statement_id  = "PseudoPollAllowGetPollLambdaExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   function_name = module.get_poll_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.get.http_method}${aws_api_gateway_resource.polls.path}"
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.get.http_method}${aws_api_gateway_resource.poll.path}"
 }
 
 module "get_poll_lambda_role" {
@@ -422,7 +415,7 @@ module "get_poll_lambda" {
 
 resource "aws_api_gateway_method_response" "get_ok" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.get.http_method
   status_code = "200"
 
@@ -431,20 +424,9 @@ resource "aws_api_gateway_method_response" "get_ok" {
   }
 }
 
-resource "aws_api_gateway_method_response" "get_bad_request" {
-  rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
-  http_method = aws_api_gateway_method.get.http_method
-  status_code = "400"
-
-  response_models = {
-    "application/json" = aws_api_gateway_model.error.name
-  }
-}
-
 resource "aws_api_gateway_method_response" "get_forbidden" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.get.http_method
   status_code = "403"
 
@@ -455,8 +437,90 @@ resource "aws_api_gateway_method_response" "get_forbidden" {
 
 resource "aws_api_gateway_method_response" "get_internal_server_error" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.polls.id
+  resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.get.http_method
+  status_code = "500"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
+  }
+}
+
+resource "aws_api_gateway_method" "public_get" {
+  rest_api_id = var.rest_api_id
+  http_method = "GET"
+  resource_id = aws_api_gateway_resource.public_poll.id
+
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_settings" "public_get" {
+  rest_api_id = var.rest_api_id
+  stage_name  = var.stage_name
+  method_path = "${aws_api_gateway_resource.public_poll.path_part}/${aws_api_gateway_method.public_get.http_method}"
+
+  settings {
+    logging_level      = "INFO"
+    metrics_enabled    = true
+    data_trace_enabled = true
+  }
+}
+
+resource "aws_api_gateway_integration" "public_get_poll" {
+  rest_api_id             = var.rest_api_id
+  resource_id             = aws_api_gateway_resource.public_poll.id
+  http_method             = aws_api_gateway_method.public_get.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = module.get_poll_lambda.invoke_arn
+}
+
+resource "aws_lambda_permission" "public_get_poll_api_lambda" {
+  statement_id  = "PseudoPollAllowPublicGetPollLambdaExecutionFromApiGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.get_poll_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.public_get.http_method}${aws_api_gateway_resource.public_poll.path}"
+}
+
+resource "aws_api_gateway_method_response" "public_get_ok" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.public_poll.id
+  http_method = aws_api_gateway_method.public_get.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.poll.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "public_get_unauthorized" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.public_poll.id
+  http_method = aws_api_gateway_method.public_get.http_method
+  status_code = "401"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "public_get_forbidden" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.public_poll.id
+  http_method = aws_api_gateway_method.public_get.http_method
+  status_code = "403"
+
+  response_models = {
+    "application/json" = aws_api_gateway_model.error.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "public_get_internal_server_error" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.public_poll.id
+  http_method = aws_api_gateway_method.public_get.http_method
   status_code = "500"
 
   response_models = {

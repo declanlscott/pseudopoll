@@ -1,6 +1,10 @@
 output "resources_hash" {
   value = sha1(jsonencode([
     aws_api_gateway_resource.polls,
+    aws_api_gateway_resource.poll,
+    aws_api_gateway_resource.public,
+    aws_api_gateway_resource.public_polls,
+    aws_api_gateway_resource.public_poll,
     aws_api_gateway_model.poll,
     aws_api_gateway_model.error,
     aws_api_gateway_model.create_poll,
@@ -17,13 +21,16 @@ output "resources_hash" {
     aws_api_gateway_method_response.delete_ok,
     aws_api_gateway_method_response.delete_bad_request,
     aws_api_gateway_method_response.delete_internal_server_error,
-    aws_api_gateway_model.get_poll,
-    aws_api_gateway_request_validator.get_poll,
     aws_api_gateway_method.get,
     aws_api_gateway_integration.get_poll,
     aws_api_gateway_method_response.get_ok,
-    aws_api_gateway_method_response.get_bad_request,
     aws_api_gateway_method_response.get_forbidden,
     aws_api_gateway_method_response.get_internal_server_error,
+    aws_api_gateway_method.public_get,
+    aws_api_gateway_integration.public_get_poll,
+    aws_api_gateway_method_response.public_get_ok,
+    aws_api_gateway_method_response.public_get_unauthorized,
+    aws_api_gateway_method_response.public_get_forbidden,
+    aws_api_gateway_method_response.public_get_internal_server_error,
   ]))
 }
