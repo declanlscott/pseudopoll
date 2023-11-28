@@ -167,7 +167,7 @@ export interface components {
       createdAt: string;
       /** @description The duration of the poll in seconds */
       duration: number;
-      /** @description Whether or not this option is archived */
+      /** @description Whether the poll is archived */
       archived: boolean;
     };
   };
