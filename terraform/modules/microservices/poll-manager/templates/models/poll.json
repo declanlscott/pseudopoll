@@ -8,7 +8,8 @@
     "prompt",
     "options",
     "createdAt",
-    "duration"
+    "duration",
+    "archived"
   ],
   "properties": {
     "pollId": {
@@ -72,6 +73,10 @@
       "description": "The duration of the poll in seconds",
       "minimum": 60,
       "maximum": 604800
+    },
+    "archived": {
+      "type": "boolean",
+      "description": "Whether or not this option is archived"
     }
   }
 }

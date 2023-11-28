@@ -1,25 +1,26 @@
 {
   "name": "pseudopoll",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview",
-    "openapi:spec": "aws apigateway get-export --parameters extensions='apigateway' --rest-api-id $(terraform -chdir=../terraform output -raw rest_api_id) --stage-name $(terraform -chdir=../terraform output -raw rest_api_stage_name) --export-type oas30 ./openapi/spec.json",
-    "openapi:codegen": "pnpm openapi --input ./openapi/spec.json --output ./src/codegen --client axios --useOptions --useUnionTypes"
-  },
-  "dependencies": {
-    "axios": "^1.5.1",
-    "form-data": "^4.0.0",
-    "vue": "^3.3.4"
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "openapi:spec": "aws apigateway get-export --parameters extensions='apigateway' --rest-api-id $(terraform -chdir=../terraform output -raw rest_api_id) --stage-name $(terraform -chdir=../terraform output -raw rest_api_stage_name) --export-type oas30 --accepts application/yaml ./openapi/specs/oas30.yaml",
+    "openapi:typegen": "openapi-typescript ./openapi/specs/oas30.yaml -o ./openapi/types/generated.d.ts"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.2.3",
-    "openapi-typescript-codegen": "^0.25.0",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5",
-    "vue-tsc": "^1.8.5"
+    "@nuxt/devtools": "latest",
+    "nuxt": "^3.8.2",
+    "openapi-typescript": "^6.7.1",
+    "vue": "^3.3.8",
+    "vue-router": "^4.2.5"
+  },
+  "dependencies": {
+    "@t3-oss/env-nuxt": "^0.7.1",
+    "openapi-fetch": "^0.8.2",
+    "zod": "^3.22.4"
   }
 }
