@@ -1,3 +1,6 @@
+import { getServerSession } from "#auth";
+
+import { authOptions } from "~/server/auth";
 import { getPollRouterParamsSchema } from "~/schemas/polls";
 import fetch from "~/server/fetch";
 
@@ -16,11 +19,18 @@ export default defineEventHandler(async (event) => {
 
   const { pollId } = routerParams.data;
 
-  const poll = await fetch.GET("/public/polls/{pollId}", {
-    params: {
-      path: { pollId },
-    },
-  });
+  const session = await getServerSession(event, authOptions);
+  const poll = await fetch.GET(
+    session ? "/polls/{pollId}" : "/public/polls/{pollId}",
+    {
+      params: {
+        path: { pollId },
+      },
+      headers: session
+        ? { Authorization: `Bearer ${session.user.idToken}` }
+        : {},
+    }
+  );
 
   if (poll.error) {
     throw createError({

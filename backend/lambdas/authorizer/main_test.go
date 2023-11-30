@@ -14,7 +14,7 @@ func TestHandler(t *testing.T) {
 
 	res, err := handler(ctx, events.APIGatewayCustomAuthorizerRequest{
 		Type:               "TOKEN",
-		AuthorizationToken: fmt.Sprintf("Bearer %s", os.Getenv("AUTH0_AUTHORIZATION_TOKEN")),
+		AuthorizationToken: fmt.Sprintf("Bearer %s", os.Getenv("AUTH_TOKEN")),
 	})
 	if err != nil {
 		t.Error(err)

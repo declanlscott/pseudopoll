@@ -28,7 +28,8 @@ variable "jwks_uri" {
 }
 
 variable "audience" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "token_issuer" {

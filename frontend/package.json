@@ -19,7 +19,9 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "@hebilicious/authjs-nuxt": "^0.3.5",
     "@t3-oss/env-nuxt": "^0.7.1",
+    "next-auth": "4.21.1",
     "openapi-fetch": "^0.8.2",
     "zod": "^3.22.4"
   }

@@ -3,15 +3,18 @@ variable "domain_name" {
 }
 
 variable "jwks_uri" {
-  type = string
+  type    = string
+  default = "https://www.googleapis.com/oauth2/v3/certs"
 }
 
 variable "audience" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "token_issuer" {
-  type = string
+  type    = string
+  default = "https://accounts.google.com"
 }
 
 variable "nanoid_alphabet" {
