@@ -19,8 +19,9 @@ module "authorizer_iam" {
 }
 
 resource "aws_api_gateway_authorizer" "authorizer" {
-  name                   = var.name
-  rest_api_id            = var.rest_api_id
-  authorizer_uri         = module.authorizer_lambda.invoke_arn
-  authorizer_credentials = module.authorizer_iam.invocation_role_arn
+  name                             = var.name
+  rest_api_id                      = var.rest_api_id
+  authorizer_uri                   = module.authorizer_lambda.invoke_arn
+  authorizer_credentials           = module.authorizer_iam.invocation_role_arn
+  authorizer_result_ttl_in_seconds = 0
 }

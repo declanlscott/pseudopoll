@@ -52,7 +52,10 @@ module "rest_api" {
   domain_name = var.domain_name
   zone_id     = aws_route53_zone.zone.zone_id
 
-  redeployment_trigger_hashes = concat([module.poll_manager_microservice.resources_hash])
+  redeployment_trigger_hashes = concat([
+    module.api_authorizer.resources_hash,
+    module.poll_manager_microservice.resources_hash
+  ])
 }
 
 module "lambda_logging" {
