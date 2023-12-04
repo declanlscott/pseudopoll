@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
@@ -32,21 +33,37 @@ func formatError(msg string, err error) string {
 	return string(responseBody)
 }
 
+func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatewayProxyResponse {
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
+
+	log.Printf("Response: %s", res)
+
+	return res
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var requestBody RequestBody
 	if err := json.Unmarshal([]byte(request.Body), &requestBody); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       formatError("Bad request", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusBadRequest,
+				Body:       formatError("Bad request", err),
+			},
+			err,
+		), nil
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	ddb := dynamodb.NewFromConfig(cfg)
@@ -76,15 +93,21 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	_, err = ddb.UpdateItem(ctx, input)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       formatError("Bad request", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusBadRequest,
+				Body:       formatError("Bad request", err),
+			},
+			err,
+		), nil
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusNoContent,
-	}, nil
+	return logAndReturn(
+		events.APIGatewayProxyResponse{
+			StatusCode: http.StatusNoContent,
+		},
+		nil,
+	), nil
 }
 
 func main() {

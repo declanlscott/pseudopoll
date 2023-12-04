@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
@@ -64,15 +65,28 @@ func formatError(msg string, err error) string {
 	return string(responseBody)
 }
 
+func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatewayProxyResponse {
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
+
+	log.Printf("Response: %s", res)
+
+	return res
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	pollId := request.PathParameters["pollId"]
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	ddb := dynamodb.NewFromConfig(cfg)
@@ -86,36 +100,50 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		},
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	var ddbPoll DdbPoll
 	err = attributevalue.UnmarshalMap(pollResult.Item, &ddbPoll)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	currentUserId := request.RequestContext.Authorizer["sub"]
 	if ddbPoll.Archived {
 		// NOTE: If this lambda is invoked by the `/public/polls/{pollId}` endpoint, the user will not be authenticated.
 		if currentUserId == nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusUnauthorized,
-				Body:       formatError("Unauthorized", errors.New("user is not authenticated")),
-			}, nil
+			err := errors.New("user is not authenticated")
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusUnauthorized,
+					Body:       formatError("Unauthorized", err),
+				},
+				err,
+			), nil
 		}
 
 		if ddbPoll.UserId != currentUserId {
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusForbidden,
-				Body:       formatError("Forbidden", errors.New("user is not authorized to access this poll")),
-			}, nil
+			err := errors.New("user is not authorized to access this poll")
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusForbidden,
+					Body:       formatError("Forbidden", err),
+				},
+				err,
+			), nil
 		}
 	}
 
@@ -133,10 +161,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		},
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	var ddbOption DdbOption
@@ -144,10 +175,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	for _, item := range optionsResult.Items {
 		err = attributevalue.UnmarshalMap(item, &ddbOption)
 		if err != nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       formatError("Internal server error", err),
-			}, nil
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusInternalServerError,
+					Body:       formatError("Internal server error", err),
+				},
+				err,
+			), nil
 		}
 
 		options = append(options, Option{
@@ -168,16 +202,22 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Archived:  ddbPoll.Archived,
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       string(poll),
-	}, nil
+	return logAndReturn(
+		events.APIGatewayProxyResponse{
+			StatusCode: http.StatusOK,
+			Body:       string(poll),
+		},
+		nil,
+	), nil
 }
 
 func main() {

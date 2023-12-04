@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -93,41 +94,63 @@ func formatError(msg string, err error) string {
 	return string(responseBody)
 }
 
+func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatewayProxyResponse {
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
+
+	log.Printf("Response: %s", res)
+
+	return res
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentTime := time.Now().UTC().Format(time.RFC3339)
 
 	nanoIdOptions, err := getNanoIdOptions()
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	ddb := dynamodb.NewFromConfig(cfg)
 
 	pollId, err := nanoid.Generate(nanoIdOptions.Alphabet, nanoIdOptions.Length)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	var requestBody RequestBody
 	if err := json.Unmarshal([]byte(request.Body), &requestBody); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       formatError("Bad request", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusBadRequest,
+				Body:       formatError("Bad request", err),
+			},
+			err,
+		), nil
 	}
 
 	ddbPoll := DdbPoll{
@@ -141,10 +164,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	item, err := attributevalue.MarshalMap(ddbPoll)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	var transactItem types.TransactWriteItem
@@ -162,10 +188,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	for _, text := range requestBody.Options {
 		optionId, err := nanoid.Generate(nanoIdOptions.Alphabet, nanoIdOptions.Length)
 		if err != nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       formatError("Internal server error", err),
-			}, nil
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusInternalServerError,
+					Body:       formatError("Internal server error", err),
+				},
+				err,
+			), nil
 		}
 
 		ddbOption = DdbOption{
@@ -178,10 +207,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 		item, err := attributevalue.MarshalMap(ddbOption)
 		if err != nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       formatError("Internal server error", err),
-			}, nil
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusInternalServerError,
+					Body:       formatError("Internal server error", err),
+				},
+				err,
+			), nil
 		}
 		options = append(options, Option{
 			OptionId:  ddbOption.OptionId,
@@ -203,10 +235,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		TransactItems: transactItems,
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
 	poll, err := json.Marshal(Poll{
@@ -219,16 +254,22 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Archived:  ddbPoll.Archived,
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       formatError("Internal server error", err),
-		}, nil
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusInternalServerError,
+				Body:       formatError("Internal server error", err),
+			},
+			err,
+		), nil
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
-		Body:       string(poll),
-	}, nil
+	return logAndReturn(
+		events.APIGatewayProxyResponse{
+			StatusCode: http.StatusCreated,
+			Body:       string(poll),
+		},
+		nil,
+	), nil
 }
 
 func main() {
