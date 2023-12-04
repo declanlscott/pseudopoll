@@ -1,13 +1,14 @@
+// eslint-disable-next-line import/named
 import { getServerSession } from "#auth";
 
-import { authOptions } from "~/server/auth";
 import { getPollRouterParamsSchema } from "~/schemas/polls";
+import { authOptions } from "~/server/auth";
 import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const routerParams = await getValidatedRouterParams(
     event,
-    getPollRouterParamsSchema.safeParse
+    getPollRouterParamsSchema.safeParse,
   );
 
   if (!routerParams.success) {
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
       headers: session
         ? { Authorization: `Bearer ${session.user.idToken}` }
         : {},
-    }
+    },
   );
 
   if (poll.error) {

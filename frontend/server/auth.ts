@@ -1,16 +1,17 @@
 import GoogleProvider from "@auth/core/providers/google";
+// eslint-disable-next-line import/named
 import { getServerSession } from "#auth";
 
 import type { AuthConfig } from "@auth/core/types";
-import type { H3Event, EventHandlerRequest } from "h3";
+import type { EventHandlerRequest, H3Event } from "h3";
 
 declare module "@auth/core/types" {
-  interface Session {
-    user: User;
-  }
   interface User {
     id: string;
     idToken: string;
+  }
+  interface Session {
+    user: User;
   }
 }
 
@@ -25,8 +26,8 @@ export const authOptions: AuthConfig = {
     }),
   ],
   callbacks: {
-    async session(params) {
-      const { session, token, user } = params;
+    session(params) {
+      const { session, token } = params;
       if (session.user) {
         session.user.id = token.sub as string;
         session.user.idToken = token.idToken as string;
@@ -34,7 +35,7 @@ export const authOptions: AuthConfig = {
 
       return session;
     },
-    async jwt(params) {
+    jwt(params) {
       const { account, token } = params;
       if (account) {
         token.idToken = account.id_token;
