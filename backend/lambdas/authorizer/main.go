@@ -72,7 +72,7 @@ func handler(
 	if err != nil {
 		return logAndReturn(
 			events.APIGatewayCustomAuthorizerResponse{},
-			errors.New("Unauthorized"),
+			err,
 		), err
 	}
 
@@ -80,7 +80,7 @@ func handler(
 	if err != nil {
 		return logAndReturn(
 			events.APIGatewayCustomAuthorizerResponse{},
-			errors.New("Unauthorized"),
+			err,
 		), err
 	}
 
