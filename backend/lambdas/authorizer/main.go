@@ -73,7 +73,7 @@ func handler(
 		return logAndReturn(
 			events.APIGatewayCustomAuthorizerResponse{},
 			err,
-		), err
+		), errors.New("Unauthorized")
 	}
 
 	claims, err := validateToken(token)
@@ -81,7 +81,7 @@ func handler(
 		return logAndReturn(
 			events.APIGatewayCustomAuthorizerResponse{},
 			err,
-		), err
+		), errors.New("Unauthorized")
 	}
 
 	return logAndReturn(
