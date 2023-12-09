@@ -13,6 +13,26 @@ variable "stage_name" {
   type        = string
 }
 
+variable "poll_model_name" {
+  description = "Name of the poll model"
+  type        = string
+}
+
+variable "create_poll_model_name" {
+  description = "Name of the create poll model"
+  type        = string
+}
+
+variable "archive_poll_model_name" {
+  description = "Name of the archive poll model"
+  type        = string
+}
+
+variable "error_model_name" {
+  description = "Name of the error model"
+  type        = string
+}
+
 variable "parent_id" {
   description = "ID of the parent API resource"
   type        = string

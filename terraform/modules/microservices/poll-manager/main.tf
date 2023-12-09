@@ -28,36 +28,6 @@ resource "aws_api_gateway_resource" "public_poll" {
   path_part   = "{pollId}"
 }
 
-resource "aws_api_gateway_model" "poll" {
-  rest_api_id  = var.rest_api_id
-  name         = "Poll"
-  description  = "Poll schema"
-  content_type = "application/json"
-
-  schema = templatefile(
-    "${path.module}/templates/models/poll.json",
-    { nanoIdLength = var.nanoid_length }
-  )
-}
-
-resource "aws_api_gateway_model" "error" {
-  rest_api_id  = var.rest_api_id
-  name         = "Error"
-  description  = "Error schema"
-  content_type = "application/json"
-
-  schema = templatefile("${path.module}/templates/models/error.json", {})
-}
-
-resource "aws_api_gateway_model" "create_poll" {
-  rest_api_id  = var.rest_api_id
-  name         = "CreatePoll"
-  description  = "Create poll schema"
-  content_type = "application/json"
-
-  schema = templatefile("${path.module}/templates/models/create-poll.json", {})
-}
-
 resource "aws_api_gateway_request_validator" "create_poll" {
   name                  = "create-poll-validator"
   rest_api_id           = var.rest_api_id
@@ -74,7 +44,7 @@ resource "aws_api_gateway_method" "post" {
 
   request_validator_id = aws_api_gateway_request_validator.create_poll.id
   request_models = {
-    "application/json" = aws_api_gateway_model.create_poll.name
+    "application/json" = var.create_poll_model_name
   }
 }
 
@@ -168,7 +138,7 @@ resource "aws_api_gateway_method_response" "post_created" {
   status_code = "201"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.poll.name
+    "application/json" = var.poll_model_name
   }
 }
 
@@ -179,7 +149,7 @@ resource "aws_api_gateway_method_response" "post_bad_request" {
   status_code = "400"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -190,17 +160,8 @@ resource "aws_api_gateway_method_response" "post_internal_server_error" {
   status_code = "500"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
-}
-
-resource "aws_api_gateway_model" "archive_poll" {
-  rest_api_id  = var.rest_api_id
-  name         = "ArchivePoll"
-  description  = "Archive poll schema"
-  content_type = "application/json"
-
-  schema = templatefile("${path.module}/templates/models/archive-poll.json", {})
 }
 
 resource "aws_api_gateway_request_validator" "archive_poll" {
@@ -306,7 +267,7 @@ resource "aws_api_gateway_method_response" "delete_bad_request" {
   status_code = "400"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -317,7 +278,7 @@ resource "aws_api_gateway_method_response" "delete_internal_server_error" {
   status_code = "500"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -420,7 +381,7 @@ resource "aws_api_gateway_method_response" "get_ok" {
   status_code = "200"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.poll.name
+    "application/json" = var.poll_model_name
   }
 }
 
@@ -431,7 +392,7 @@ resource "aws_api_gateway_method_response" "get_forbidden" {
   status_code = "403"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -442,7 +403,7 @@ resource "aws_api_gateway_method_response" "get_internal_server_error" {
   status_code = "500"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -491,7 +452,7 @@ resource "aws_api_gateway_method_response" "public_get_ok" {
   status_code = "200"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.poll.name
+    "application/json" = var.poll_model_name
   }
 }
 
@@ -502,7 +463,7 @@ resource "aws_api_gateway_method_response" "public_get_unauthorized" {
   status_code = "401"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -513,7 +474,7 @@ resource "aws_api_gateway_method_response" "public_get_forbidden" {
   status_code = "403"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 
@@ -524,7 +485,7 @@ resource "aws_api_gateway_method_response" "public_get_internal_server_error" {
   status_code = "500"
 
   response_models = {
-    "application/json" = aws_api_gateway_model.error.name
+    "application/json" = var.error_model_name
   }
 }
 

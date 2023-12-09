@@ -1,0 +1,11 @@
+#set($parameters = $input.path('$'))
+#set($parameters.pollId = $input.params('pollId'))
+#set($parameters.userId = $context.authorizer.claims.sub)
+#set($parameters.sourceIp = $context.identity.sourceIp)
+#set($parameters.requestTimeEpoch = $context.requestTimeEpoch)
+#set($body = "{")
+#foreach($k in $parameters.keySet())
+#set($body = $body + """$k"": """ + $util.escapeJavaScript($parameters.get($k)) + """, ")
+#end
+#set($body = $body + "}")
+Action=SendMessage&MessageBody=$body.replaceAll(", }", "}")

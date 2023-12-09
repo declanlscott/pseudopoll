@@ -59,6 +59,25 @@ export interface paths {
         };
       };
     };
+    patch: {
+      parameters: {
+        path: {
+          pollId: string;
+        };
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["Vote"];
+        };
+      };
+      responses: {
+        /** @description 202 response */
+        202: {
+          content: {
+          };
+        };
+      };
+    };
   };
   "/polls": {
     post: {
@@ -123,6 +142,25 @@ export interface paths {
         };
       };
     };
+    patch: {
+      parameters: {
+        path: {
+          pollId: string;
+        };
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["Vote"];
+        };
+      };
+      responses: {
+        /** @description 202 response */
+        202: {
+          content: {
+          };
+        };
+      };
+    };
   };
 }
 
@@ -130,14 +168,18 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    /** Vote Schema */
+    Vote: {
+      optionId: string;
+    };
     /** Create Poll Schema */
     CreatePoll: {
-      /** @description The duration of the poll in seconds */
-      duration: number;
-      /** @description The options to vote on */
-      options: string[];
       /** @description The poll prompt */
       prompt: string;
+      /** @description The options to vote on */
+      options: string[];
+      /** @description The duration of the poll in seconds */
+      duration: number;
     };
     /** Error schema */
     Error: {

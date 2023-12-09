@@ -11,12 +11,12 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-resource "aws_iam_role" "iam_for_apigateway" {
-  name               = "iam_for_apigateway"
+resource "aws_iam_role" "api_gateway_role" {
+  name               = "pseudopoll-api-gateway-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-data "aws_iam_policy_document" "apigateway_logging" {
+data "aws_iam_policy_document" "api_gateway_logging" {
   statement {
     effect = "Allow"
 
@@ -34,18 +34,18 @@ data "aws_iam_policy_document" "apigateway_logging" {
   }
 }
 
-resource "aws_iam_policy" "apigateway_logging" {
-  name        = "apigateway_logging"
+resource "aws_iam_policy" "api_gateway_logging" {
+  name        = "pseudopoll-api-gateway-logging"
   path        = "/"
   description = "IAM policy for logging from API Gateway"
-  policy      = data.aws_iam_policy_document.apigateway_logging.json
+  policy      = data.aws_iam_policy_document.api_gateway_logging.json
 }
 
-resource "aws_iam_role_policy_attachment" "apigateway_logs" {
-  role       = aws_iam_role.iam_for_apigateway.name
-  policy_arn = aws_iam_policy.apigateway_logging.arn
+resource "aws_iam_role_policy_attachment" "api_gateway_logging" {
+  role       = aws_iam_role.api_gateway_role.name
+  policy_arn = aws_iam_policy.api_gateway_logging.arn
 }
 
 resource "aws_api_gateway_account" "account" {
-  cloudwatch_role_arn = aws_iam_role.iam_for_apigateway.arn
+  cloudwatch_role_arn = aws_iam_role.api_gateway_role.arn
 }

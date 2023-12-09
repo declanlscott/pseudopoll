@@ -5,16 +5,12 @@ output "resources_hash" {
     aws_api_gateway_resource.public,
     aws_api_gateway_resource.public_polls,
     aws_api_gateway_resource.public_poll,
-    aws_api_gateway_model.poll,
-    aws_api_gateway_model.error,
-    aws_api_gateway_model.create_poll,
     aws_api_gateway_request_validator.create_poll,
     aws_api_gateway_method.post,
     aws_api_gateway_integration.create_poll,
     aws_api_gateway_method_response.post_created,
     aws_api_gateway_method_response.post_bad_request,
     aws_api_gateway_method_response.post_internal_server_error,
-    aws_api_gateway_model.archive_poll,
     aws_api_gateway_request_validator.archive_poll,
     aws_api_gateway_method.delete,
     aws_api_gateway_integration.archive_poll,
@@ -33,4 +29,12 @@ output "resources_hash" {
     aws_api_gateway_method_response.public_get_forbidden,
     aws_api_gateway_method_response.public_get_internal_server_error,
   ]))
+}
+
+output "poll_resource_id" {
+  value = aws_api_gateway_resource.poll.id
+}
+
+output "public_poll_resource_id" {
+  value = aws_api_gateway_resource.public_poll.id
 }

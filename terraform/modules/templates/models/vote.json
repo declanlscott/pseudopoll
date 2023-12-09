@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Vote Schema",
+  "type": "object",
+  "required": ["optionId"],
+  "properties": {
+    "optionId": {
+      "type": "string",
+      "minLength": ${nanoIdLength},
+      "maxLength": ${nanoIdLength}
+    }
+  }
+}
