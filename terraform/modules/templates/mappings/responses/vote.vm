@@ -1,0 +1,4 @@
+{
+  "message": "Vote queued.",
+  "requestId": "$context.extendedRequestId"
+}

@@ -489,6 +489,10 @@ resource "aws_api_gateway_method_response" "public_get_internal_server_error" {
   }
 }
 
+locals {
+  user_id_index_name = "UserId-index"
+}
+
 resource "aws_dynamodb_table" "polls_table" {
   name         = "pseudopoll-polls"
   billing_mode = "PAY_PER_REQUEST"
@@ -496,7 +500,7 @@ resource "aws_dynamodb_table" "polls_table" {
   hash_key = "PollId"
 
   global_secondary_index {
-    name            = "UserId-index"
+    name            = local.user_id_index_name
     hash_key        = "UserId"
     projection_type = "ALL"
   }

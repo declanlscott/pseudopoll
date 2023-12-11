@@ -61,6 +61,7 @@ module "rest_api" {
 }
 
 locals {
+  region = "us-east-2"
   resources_hash = sha1(jsonencode([
     aws_api_gateway_model.poll,
     aws_api_gateway_model.create_poll,
@@ -68,6 +69,9 @@ locals {
     aws_api_gateway_model.vote,
     aws_api_gateway_model.error,
   ]))
+  polls_table_name   = "pseudopoll-polls"
+  options_table_name = "pseudopoll-options"
+  votes_table_name   = "pseudopoll-votes"
 }
 
 module "lambda_logging" {
@@ -149,6 +153,9 @@ module "poll_manager_microservice" {
   error_model_name          = aws_api_gateway_model.error.name
   parent_id                 = module.rest_api.root_resource_id
   custom_authorizer_id      = module.api_authorizer.id
+  polls_table_name          = local.polls_table_name
+  options_table_name        = local.options_table_name
+  votes_table_name          = local.votes_table_name
   nanoid_alphabet           = var.nanoid_alphabet
   nanoid_length             = var.nanoid_length
   lambda_logging_policy_arn = module.lambda_logging.policy_arn
@@ -166,5 +173,10 @@ module "vote_queue_microservice" {
   custom_authorizer_id      = module.api_authorizer.id
   public_poll_resource_id   = module.poll_manager_microservice.public_poll_resource_id
   lambda_logging_policy_arn = module.lambda_logging.policy_arn
-  region                    = "us-east-2"
+  region                    = local.region
+  polls_table_name          = local.polls_table_name
+  polls_table_arn           = module.poll_manager_microservice.polls_table_arn
+  options_table_arn         = module.poll_manager_microservice.options_table_arn
+  options_table_name        = local.options_table_name
+  votes_table_name          = local.votes_table_name
 }

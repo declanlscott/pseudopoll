@@ -3,6 +3,7 @@
 #set($parameters.userId = $context.authorizer.claims.sub)
 #set($parameters.sourceIp = $context.identity.sourceIp)
 #set($parameters.requestTimeEpoch = $context.requestTimeEpoch)
+#set($parameters.requestId = $context.extendedRequestId)
 #set($body = "{")
 #foreach($k in $parameters.keySet())
 #set($body = $body + """$k"": """ + $util.escapeJavaScript($parameters.get($k)) + """, ")
