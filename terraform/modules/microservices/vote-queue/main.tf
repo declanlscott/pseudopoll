@@ -144,7 +144,7 @@ resource "aws_iam_role_policy_attachment" "vote_logging" {
   policy_arn = var.lambda_logging_policy_arn
 }
 
-data "aws_iam_policy_document" "vote_lambda_sqs" {
+data "aws_iam_policy_document" "vote_sqs_ddb" {
   statement {
     effect = "Allow"
 
@@ -156,21 +156,7 @@ data "aws_iam_policy_document" "vote_lambda_sqs" {
 
     resources = [aws_sqs_queue.vote_queue.arn]
   }
-}
 
-resource "aws_iam_policy" "vote_lambda_sqs" {
-  name        = "pseudopoll-vote-lambda-sqs"
-  description = "IAM policy for the vote lambda to receive messages from the vote queue"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.vote_lambda_sqs.json
-}
-
-resource "aws_iam_role_policy_attachment" "vote_lambda_sqs" {
-  role       = module.vote_lambda_role.role_name
-  policy_arn = aws_iam_policy.vote_lambda_sqs.arn
-}
-
-data "aws_iam_policy_document" "vote_lambda_ddb_polls" {
   statement {
     effect = "Allow"
 
@@ -182,21 +168,7 @@ data "aws_iam_policy_document" "vote_lambda_ddb_polls" {
       var.polls_table_arn,
     ]
   }
-}
 
-resource "aws_iam_policy" "vote_lambda_ddb_polls" {
-  name        = "pseudopoll-vote-lambda-ddb-polls"
-  description = "IAM policy for the vote lambda to get items from the polls table"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.vote_lambda_ddb_polls.json
-}
-
-resource "aws_iam_role_policy_attachment" "vote_lambda_ddb_polls" {
-  role       = module.vote_lambda_role.role_name
-  policy_arn = aws_iam_policy.vote_lambda_ddb_polls.arn
-}
-
-data "aws_iam_policy_document" "vote_lambda_ddb_options" {
   statement {
     effect = "Allow"
 
@@ -209,21 +181,7 @@ data "aws_iam_policy_document" "vote_lambda_ddb_options" {
       var.options_table_arn,
     ]
   }
-}
 
-resource "aws_iam_policy" "vote_lambda_ddb_options" {
-  name        = "pseudopoll-vote-lambda-ddb-options"
-  description = "IAM policy for the vote lambda to update items in the options table"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.vote_lambda_ddb_options.json
-}
-
-resource "aws_iam_role_policy_attachment" "vote_lambda_ddb_options" {
-  role       = module.vote_lambda_role.role_name
-  policy_arn = aws_iam_policy.vote_lambda_ddb_options.arn
-}
-
-data "aws_iam_policy_document" "vote_lambda_ddb_votes" {
   statement {
     effect = "Allow"
 
@@ -238,16 +196,16 @@ data "aws_iam_policy_document" "vote_lambda_ddb_votes" {
   }
 }
 
-resource "aws_iam_policy" "vote_lambda_ddb_votes" {
-  name        = "pseudopoll-vote-lambda-ddb-votes"
-  description = "IAM policy for the vote lambda to put items in the votes table"
+resource "aws_iam_policy" "vote_sqs_ddb" {
+  name        = "pseudopoll-vote-sqs-ddb"
+  description = "IAM policy to receive messages from the vote queue and interact with polls, options, and votes tables"
   path        = "/"
-  policy      = data.aws_iam_policy_document.vote_lambda_ddb_votes.json
+  policy      = data.aws_iam_policy_document.vote_sqs_ddb.json
 }
 
-resource "aws_iam_role_policy_attachment" "vote_lambda_ddb_votes" {
+resource "aws_iam_role_policy_attachment" "vote_sqs_ddb" {
   role       = module.vote_lambda_role.role_name
-  policy_arn = aws_iam_policy.vote_lambda_ddb_votes.arn
+  policy_arn = aws_iam_policy.vote_sqs_ddb.arn
 }
 
 module "vote_lambda" {
