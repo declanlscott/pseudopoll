@@ -39,6 +39,7 @@ type DdbVote struct {
 	VoterId  string `dynamodbav:"VoterId"`
 	PollId   string `dynamodbav:"PollId"`
 	OptionId string `dynamodbav:"OptionId"`
+	VoteId   string `dynamodbav:"VoteId"`
 }
 
 func handler(ctx context.Context, event events.SQSEvent) {
@@ -112,6 +113,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			VoterId:  voterId,
 			PollId:   messageBody.PollId,
 			OptionId: messageBody.OptionId,
+			VoteId:   messageBody.RequestId,
 		})
 		if err != nil {
 			log.Printf("Error: %s\n", err)
@@ -140,10 +142,11 @@ func handler(ctx context.Context, event events.SQSEvent) {
 							},
 						},
 						ConditionExpression: aws.String("#pollId = :pollId"),
-						UpdateExpression:    aws.String("SET #votes = #votes + :vote"),
+						UpdateExpression:    aws.String("SET #votes = #votes + :vote, #updatedAt = :updatedAt"),
 						ExpressionAttributeNames: map[string]string{
-							"#pollId": "PollId",
-							"#votes":  "Votes",
+							"#pollId":    "PollId",
+							"#votes":     "Votes",
+							"#updatedAt": "UpdatedAt",
 						},
 						ExpressionAttributeValues: map[string]types.AttributeValue{
 							":pollId": &types.AttributeValueMemberS{
@@ -151,6 +154,9 @@ func handler(ctx context.Context, event events.SQSEvent) {
 							},
 							":vote": &types.AttributeValueMemberN{
 								Value: "1",
+							},
+							":updatedAt": &types.AttributeValueMemberS{
+								Value: requestTime.Format(time.RFC3339),
 							},
 						},
 					},
