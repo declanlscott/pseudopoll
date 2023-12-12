@@ -179,3 +179,8 @@ module "vote_queue_microservice" {
   options_table_name        = local.options_table_name
   votes_table_name          = local.votes_table_name
 }
+
+module "event_bus" {
+  source = "./modules/microservices/event-bus"
+  name   = "pseudopoll-event-bus"
+}
