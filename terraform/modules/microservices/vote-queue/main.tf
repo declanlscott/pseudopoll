@@ -1,27 +1,22 @@
-resource "aws_api_gateway_request_validator" "vote" {
-  name                  = "vote-validator"
-  rest_api_id           = var.rest_api_id
-  validate_request_body = true
+resource "aws_api_gateway_resource" "option" {
+  rest_api_id = var.rest_api_id
+  parent_id   = var.poll_resource_id
+  path_part   = "{optionId}"
 }
 
-resource "aws_api_gateway_method" "patch" {
+resource "aws_api_gateway_method" "post" {
   rest_api_id = var.rest_api_id
-  http_method = "PATCH"
-  resource_id = var.poll_resource_id
+  http_method = "POST"
+  resource_id = aws_api_gateway_resource.option.id
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
-
-  request_validator_id = aws_api_gateway_request_validator.vote.id
-  request_models = {
-    "application/json" = var.vote_model_name
-  }
 }
 
 resource "aws_api_gateway_integration" "vote" {
   rest_api_id             = var.rest_api_id
-  resource_id             = var.poll_resource_id
-  http_method             = aws_api_gateway_method.patch.http_method
+  resource_id             = aws_api_gateway_resource.option.id
+  http_method             = aws_api_gateway_method.post.http_method
   integration_http_method = "POST"
   type                    = "AWS"
   passthrough_behavior    = "NEVER"
@@ -39,9 +34,9 @@ resource "aws_api_gateway_integration" "vote" {
 
 resource "aws_api_gateway_integration_response" "vote_accepted" {
   rest_api_id       = var.rest_api_id
-  resource_id       = var.poll_resource_id
-  http_method       = aws_api_gateway_method.patch.http_method
-  status_code       = aws_api_gateway_method_response.patch_accepted.status_code
+  resource_id       = aws_api_gateway_resource.option.id
+  http_method       = aws_api_gateway_method.post.http_method
+  status_code       = aws_api_gateway_method_response.post_accepted.status_code
   selection_pattern = "^2[0-9][0-9]"
 
   response_templates = {
@@ -49,30 +44,31 @@ resource "aws_api_gateway_integration_response" "vote_accepted" {
   }
 }
 
-resource "aws_api_gateway_method_response" "patch_accepted" {
+resource "aws_api_gateway_method_response" "post_accepted" {
   rest_api_id = var.rest_api_id
-  resource_id = var.poll_resource_id
-  http_method = aws_api_gateway_method.patch.http_method
+  resource_id = aws_api_gateway_resource.option.id
+  http_method = aws_api_gateway_method.post.http_method
   status_code = "202"
 }
 
-resource "aws_api_gateway_method" "public_patch" {
+resource "aws_api_gateway_resource" "public_option" {
   rest_api_id = var.rest_api_id
-  http_method = "PATCH"
-  resource_id = var.public_poll_resource_id
+  parent_id   = var.public_poll_resource_id
+  path_part   = "{optionId}"
+}
+
+resource "aws_api_gateway_method" "public_post" {
+  rest_api_id = var.rest_api_id
+  http_method = "POST"
+  resource_id = aws_api_gateway_resource.public_option.id
 
   authorization = "NONE"
-
-  request_validator_id = aws_api_gateway_request_validator.vote.id
-  request_models = {
-    "application/json" = var.vote_model_name
-  }
 }
 
 resource "aws_api_gateway_integration" "public_vote" {
   rest_api_id             = var.rest_api_id
-  resource_id             = var.public_poll_resource_id
-  http_method             = aws_api_gateway_method.public_patch.http_method
+  resource_id             = aws_api_gateway_resource.public_option.id
+  http_method             = aws_api_gateway_method.public_post.http_method
   integration_http_method = "POST"
   type                    = "AWS"
   passthrough_behavior    = "WHEN_NO_TEMPLATES"
@@ -90,9 +86,9 @@ resource "aws_api_gateway_integration" "public_vote" {
 
 resource "aws_api_gateway_integration_response" "public_vote_accepted" {
   rest_api_id       = var.rest_api_id
-  resource_id       = var.public_poll_resource_id
-  http_method       = aws_api_gateway_method.public_patch.http_method
-  status_code       = aws_api_gateway_method_response.public_patch_accepted.status_code
+  resource_id       = aws_api_gateway_resource.public_option.id
+  http_method       = aws_api_gateway_method.public_post.http_method
+  status_code       = aws_api_gateway_method_response.public_post_accepted.status_code
   selection_pattern = "^2[0-9][0-9]"
 
   response_templates = {
@@ -100,10 +96,10 @@ resource "aws_api_gateway_integration_response" "public_vote_accepted" {
   }
 }
 
-resource "aws_api_gateway_method_response" "public_patch_accepted" {
+resource "aws_api_gateway_method_response" "public_post_accepted" {
   rest_api_id = var.rest_api_id
-  resource_id = var.public_poll_resource_id
-  http_method = aws_api_gateway_method.public_patch.http_method
+  resource_id = aws_api_gateway_resource.public_option.id
+  http_method = aws_api_gateway_method.public_post.http_method
   status_code = "202"
 }
 

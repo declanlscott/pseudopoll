@@ -23,11 +23,6 @@ variable "error_model_name" {
   type        = string
 }
 
-variable "nanoid_length" {
-  description = "Length of the nanoid"
-  type        = number
-}
-
 variable "poll_resource_id" {
   description = "ID of the poll resource"
   type        = string

@@ -1,5 +1,6 @@
 #set($parameters = $input.path('$'))
 #set($parameters.pollId = $input.params('pollId'))
+#set($parameters.optionId = $input.params('optionId'))
 #set($parameters.userId = $context.authorizer.claims.sub)
 #set($parameters.sourceIp = $context.identity.sourceIp)
 #set($parameters.requestTimeEpoch = $context.requestTimeEpoch)

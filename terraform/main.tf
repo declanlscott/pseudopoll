@@ -168,7 +168,6 @@ module "vote_queue_microservice" {
   rest_api_id               = module.rest_api.id
   vote_model_name           = aws_api_gateway_model.vote.name
   error_model_name          = aws_api_gateway_model.error.name
-  nanoid_length             = var.nanoid_length
   poll_resource_id          = module.poll_manager_microservice.poll_resource_id
   custom_authorizer_id      = module.api_authorizer.id
   public_poll_resource_id   = module.poll_manager_microservice.public_poll_resource_id
