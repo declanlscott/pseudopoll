@@ -234,4 +234,7 @@ resource "aws_dynamodb_table" "votes_table" {
     name = "PollId"
     type = "S"
   }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
 }

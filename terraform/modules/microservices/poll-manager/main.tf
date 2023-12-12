@@ -514,6 +514,9 @@ resource "aws_dynamodb_table" "polls_table" {
     name = "UserId"
     type = "S"
   }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
 }
 
 locals {
@@ -541,4 +544,7 @@ resource "aws_dynamodb_table" "options_table" {
     name = "PollId"
     type = "S"
   }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
 }
