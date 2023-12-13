@@ -177,6 +177,12 @@ resource "aws_api_gateway_method" "delete" {
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
+
+  request_validator_id = aws_api_gateway_request_validator.archive_poll.id
+
+  request_models = {
+    "application/json" = var.archive_poll_model_name
+  }
 }
 
 resource "aws_api_gateway_method_settings" "delete" {
@@ -401,6 +407,150 @@ resource "aws_api_gateway_method_response" "get_internal_server_error" {
   resource_id = aws_api_gateway_resource.poll.id
   http_method = aws_api_gateway_method.get.http_method
   status_code = "500"
+
+  response_models = {
+    "application/json" = var.error_model_name
+  }
+}
+
+resource "aws_api_gateway_request_validator" "update_poll_duration" {
+  name                  = "update-poll-duration-validator"
+  rest_api_id           = var.rest_api_id
+  validate_request_body = true
+}
+
+resource "aws_api_gateway_method" "patch" {
+  rest_api_id = var.rest_api_id
+  http_method = "PATCH"
+  resource_id = aws_api_gateway_resource.poll.id
+
+  authorization = "CUSTOM"
+  authorizer_id = var.custom_authorizer_id
+
+  request_validator_id = aws_api_gateway_request_validator.update_poll_duration.id
+
+  request_models = {
+    "application/json" = var.update_poll_duration_model_name
+  }
+}
+
+resource "aws_api_gateway_method_settings" "patch" {
+  rest_api_id = var.rest_api_id
+  stage_name  = var.stage_name
+  method_path = "${aws_api_gateway_resource.poll.path_part}/${aws_api_gateway_method.patch.http_method}"
+
+  settings {
+    logging_level      = "INFO"
+    metrics_enabled    = true
+    data_trace_enabled = true
+  }
+}
+
+resource "aws_api_gateway_integration" "update_poll_duration" {
+  rest_api_id             = var.rest_api_id
+  resource_id             = aws_api_gateway_resource.poll.id
+  http_method             = aws_api_gateway_method.patch.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = module.update_poll_duration_lambda.invoke_arn
+}
+
+resource "aws_lambda_permission" "update_poll_duration_api_lambda" {
+  statement_id  = "PseudoPollAllowUpdatePollDurationLambdaExecutionFromApiGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.update_poll_duration_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.patch.http_method}${aws_api_gateway_resource.poll.path}"
+}
+
+module "update_poll_duration_lambda_role" {
+  source    = "../../lambda/iam"
+  role_name = "pseudopoll-update-poll-duration-lambda-role"
+}
+
+resource "aws_iam_role_policy_attachment" "update_poll_duration_logging" {
+  role       = module.update_poll_duration_lambda_role.role_name
+  policy_arn = var.lambda_logging_policy_arn
+}
+
+data "aws_iam_policy_document" "update_poll_duration_lambda_ddb" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.polls_table.arn,
+    ]
+  }
+}
+
+resource "aws_iam_policy" "update_poll_duration_lambda_ddb" {
+  name        = "pseudopoll-update-poll-duration-lambda-ddb"
+  description = "IAM policy for update poll duration lambda to read from and write to DynamoDB"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.update_poll_duration_lambda_ddb.json
+}
+
+resource "aws_iam_role_policy_attachment" "update_poll_duration_lambda_ddb" {
+  role       = module.update_poll_duration_lambda_role.role_name
+  policy_arn = aws_iam_policy.update_poll_duration_lambda_ddb.arn
+}
+
+module "update_poll_duration_lambda" {
+  source              = "../../lambda"
+  function_name       = "pseudopoll-update-poll-duration"
+  role_arn            = module.update_poll_duration_lambda_role.role_arn
+  archive_source_file = "${path.module}/../../../../backend/lambdas/update-poll-duration/bin/bootstrap"
+  archive_output_path = "${path.module}/../../../../backend/lambdas/update-poll-duration/bin/update-poll-duration.zip"
+
+  environment_variables = {
+    POLLS_TABLE_NAME = aws_dynamodb_table.polls_table.name
+  }
+}
+
+resource "aws_api_gateway_method_response" "patch_ok" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.poll.id
+  http_method = aws_api_gateway_method.patch.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = var.update_poll_duration_model_name
+  }
+}
+
+resource "aws_api_gateway_method_response" "patch_bad_request" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.poll.id
+  http_method = aws_api_gateway_method.patch.http_method
+  status_code = "400"
+
+  response_models = {
+    "application/json" = var.error_model_name
+  }
+}
+
+resource "aws_api_gateway_method_response" "patch_internal_server_error" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.poll.id
+  http_method = aws_api_gateway_method.patch.http_method
+  status_code = "500"
+
+  response_models = {
+    "application/json" = var.error_model_name
+  }
+}
+
+resource "aws_api_gateway_method_response" "patch_not_found" {
+  rest_api_id = var.rest_api_id
+  resource_id = aws_api_gateway_resource.poll.id
+  http_method = aws_api_gateway_method.patch.http_method
+  status_code = "404"
 
   response_models = {
     "application/json" = var.error_model_name

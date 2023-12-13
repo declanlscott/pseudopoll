@@ -13,11 +13,6 @@ variable "rest_api_id" {
   type        = string
 }
 
-variable "vote_model_name" {
-  description = "Name of the vote model"
-  type        = string
-}
-
 variable "error_model_name" {
   description = "Name of the error model"
   type        = string

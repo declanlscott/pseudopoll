@@ -28,6 +28,11 @@ variable "archive_poll_model_name" {
   type        = string
 }
 
+variable "update_poll_duration_model_name" {
+  description = "Name of the update poll duration model"
+  type        = string
+}
+
 variable "error_model_name" {
   description = "Name of the error model"
   type        = string
