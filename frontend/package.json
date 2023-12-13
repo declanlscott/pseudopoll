@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext \".ts,.vue\" --ignore-path .gitignore .",
-    "format": "prettier --check .",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
     "openapi:spec": "aws apigateway get-export --parameters extensions='apigateway' --rest-api-id $(terraform -chdir=../terraform output -raw rest_api_id) --stage-name $(terraform -chdir=../terraform output -raw rest_api_stage_name) --export-type oas30 --accepts application/yaml ./openapi/specs/oas30.yaml",
     "openapi:typegen": "openapi-typescript ./openapi/specs/oas30.yaml -o ./openapi/types/generated.d.ts"
   },
@@ -24,15 +25,19 @@
     "nuxt": "^3.8.2",
     "openapi-typescript": "^6.7.1",
     "prettier": "^3.1.0",
+    "prettier-plugin-tailwindcss": "^0.5.8",
     "vue": "^3.3.8",
     "vue-eslint-parser": "^9.3.2",
     "vue-router": "^4.2.5"
   },
   "dependencies": {
     "@hebilicious/authjs-nuxt": "^0.3.5",
+    "@nuxt/ui": "^2.11.0",
     "@t3-oss/env-nuxt": "^0.7.1",
+    "clsx": "^2.0.0",
     "next-auth": "4.21.1",
     "openapi-fetch": "^0.8.2",
+    "tailwind-merge": "^2.1.0",
     "zod": "^3.22.4"
   }
 }

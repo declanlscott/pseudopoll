@@ -1,8 +1,5 @@
-// eslint-disable-next-line import/named
-import { getServerSession } from "#auth";
-
 import { getPollRouterParamsSchema } from "~/schemas/polls";
-import { authOptions } from "~/server/auth";
+import { getServerAuthSession } from "~/server/auth";
 import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
@@ -20,8 +17,8 @@ export default defineEventHandler(async (event) => {
 
   const { pollId } = routerParams.data;
 
-  const session = await getServerSession(event, authOptions);
-  const poll = await fetch.GET(
+  const session = await getServerAuthSession(event);
+  const result = await fetch.GET(
     session ? "/polls/{pollId}" : "/public/polls/{pollId}",
     {
       params: {
@@ -32,13 +29,12 @@ export default defineEventHandler(async (event) => {
         : {},
     },
   );
-
-  if (poll.error) {
+  if (result.error) {
     throw createError({
-      statusCode: poll.response.status,
-      message: `${poll.error.message}. ${poll.error.cause}`,
+      statusCode: result.response.status,
+      message: `${result.error.message}. ${result.error.cause}`,
     });
   }
 
-  return poll.data;
+  return result.data;
 });

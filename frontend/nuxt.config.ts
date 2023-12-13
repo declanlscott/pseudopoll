@@ -3,7 +3,7 @@ import { env } from "./env";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@hebilicious/authjs-nuxt"],
+  modules: ["@hebilicious/authjs-nuxt", "@nuxt/ui"],
   runtimeConfig: {
     authJs: {
       secret: env.AUTH_SECRET,

@@ -5,6 +5,23 @@
 
 
 export interface paths {
+  "/polls/{pollId}/{optionId}": {
+    post: {
+      parameters: {
+        path: {
+          pollId: string;
+          optionId: string;
+        };
+      };
+      responses: {
+        /** @description 202 response */
+        202: {
+          content: {
+          };
+        };
+      };
+    };
+  };
   "/polls/{pollId}": {
     get: {
       parameters: {
@@ -39,6 +56,11 @@ export interface paths {
           pollId: string;
         };
       };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["ArchivePoll"];
+        };
+      };
       responses: {
         /** @description 204 response */
         204: {
@@ -67,13 +89,32 @@ export interface paths {
       };
       requestBody: {
         content: {
-          "application/json": components["schemas"]["Vote"];
+          "application/json": components["schemas"]["UpdatePollDuration"];
         };
       };
       responses: {
-        /** @description 202 response */
-        202: {
+        /** @description 200 response */
+        200: {
           content: {
+            "application/json": components["schemas"]["UpdatePollDuration"];
+          };
+        };
+        /** @description 400 response */
+        400: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 404 response */
+        404: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 500 response */
+        500: {
+          content: {
+            "application/json": components["schemas"]["Error"];
           };
         };
       };
@@ -142,15 +183,13 @@ export interface paths {
         };
       };
     };
-    patch: {
+  };
+  "/public/polls/{pollId}/{optionId}": {
+    post: {
       parameters: {
         path: {
           pollId: string;
-        };
-      };
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["Vote"];
+          optionId: string;
         };
       };
       responses: {
@@ -168,9 +207,9 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    /** Vote Schema */
-    Vote: {
-      optionId: string;
+    /** Archive Poll Schema */
+    ArchivePoll: {
+      archived: boolean;
     };
     /** Create Poll Schema */
     CreatePoll: {
@@ -211,6 +250,10 @@ export interface components {
       duration: number;
       /** @description Whether the poll is archived */
       archived: boolean;
+    };
+    /** Update Poll Duration Schema */
+    UpdatePollDuration: {
+      duration: number;
     };
   };
   responses: never;

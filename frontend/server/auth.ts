@@ -12,6 +12,7 @@ declare module "@auth/core/types" {
   }
   interface Session {
     user: User;
+    id: string;
   }
 }
 
@@ -32,7 +33,6 @@ export const authOptions: AuthConfig = {
         session.user.id = token.sub as string;
         session.user.idToken = token.idToken as string;
       }
-
       return session;
     },
     jwt(params) {
