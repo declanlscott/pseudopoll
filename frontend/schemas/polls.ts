@@ -15,27 +15,52 @@ const nanoIdSchema = (propertyName: string) =>
       message: `${propertyName} should only contain characters from the alphabet: ${env.NANO_ID_ALPHABET}.`,
     });
 
-// TODO: Get min and max values from env
+const durationSchema = z
+  .number()
+  .int()
+  .positive()
+  .min(
+    env.MIN_DURATION,
+    `Poll duration should be at least ${env.MIN_DURATION} seconds.`,
+  )
+  .max(
+    env.MAX_DURATION,
+    `Poll duration should be at most ${env.MAX_DURATION} seconds.`,
+  );
+
 export const createPollBodySchema = z.object({
   prompt: z
     .string()
-    .min(1, "Prompt should be at least 1 character.")
-    .max(280, "Prompt should be at most 280 characters."),
+    .min(
+      env.PROMPT_MIN_LENGTH,
+      `Prompt should be at least ${env.PROMPT_MIN_LENGTH} characters.`,
+    )
+    .max(
+      env.PROMPT_MAX_LENGTH,
+      `Prompt should be at most ${env.PROMPT_MAX_LENGTH} characters.`,
+    ),
   options: z
     .array(
       z
         .string()
-        .min(1, "Option should be at least 1 character.")
-        .max(140, "Option should be at most 140 characters."),
+        .min(
+          env.OPTION_MIN_LENGTH,
+          `Option should be at least ${env.OPTION_MIN_LENGTH} characters.`,
+        )
+        .max(
+          env.OPTION_MAX_LENGTH,
+          `Option should be at most ${env.OPTION_MAX_LENGTH} characters.`,
+        ),
     )
-    .min(2, "Poll should have at least 2 options.")
-    .max(10, "Poll should have at most 10 options."),
-  duration: z
-    .number()
-    .int()
-    .positive()
-    .min(60, "Poll duration should be at least 60 seconds.")
-    .max(604800, "Poll duration should be at most 604800 seconds."),
+    .min(
+      env.MIN_OPTIONS,
+      `Poll should have at least ${env.MIN_OPTIONS} options.`,
+    )
+    .max(
+      env.MAX_OPTIONS,
+      `Poll should have at most ${env.MAX_OPTIONS} options.`,
+    ),
+  duration: durationSchema,
 });
 
 export const getPollRouterParamsSchema = z.object({
@@ -60,5 +85,5 @@ export const updatePollDurationRouterParamsSchema = z.object({
 });
 
 export const updatePollDurationBodySchema = z.object({
-  duration: z.union([z.literal(-1), z.number().int().positive()]),
+  duration: z.union([z.literal(-1), durationSchema]),
 });
