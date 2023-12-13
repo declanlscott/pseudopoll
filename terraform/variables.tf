@@ -28,3 +28,51 @@ variable "nanoid_length" {
   description = "Length of the nanoid"
   default     = 12
 }
+
+variable "prompt_min_length" {
+  type        = number
+  description = "Minimum length of the prompt"
+  default     = 1
+}
+
+variable "prompt_max_length" {
+  type        = number
+  description = "Maximum length of the prompt"
+  default     = 280
+}
+
+variable "option_min_length" {
+  type        = number
+  description = "Minimum length of the option"
+  default     = 1
+}
+
+variable "option_max_length" {
+  type        = number
+  description = "Maximum length of the option"
+  default     = 140
+}
+
+variable "min_options" {
+  type        = number
+  description = "Minimum number of options"
+  default     = 2
+}
+
+variable "max_options" {
+  type        = number
+  description = "Maximum number of options"
+  default     = 10
+}
+
+variable "min_duration" {
+  type        = number
+  description = "Minimum duration of the poll"
+  default     = 60
+}
+
+variable "max_duration" {
+  type        = number
+  description = "Maximum duration of the poll"
+  default     = 604800
+}

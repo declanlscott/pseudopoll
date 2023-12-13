@@ -109,7 +109,19 @@ resource "aws_api_gateway_model" "create_poll" {
   description  = "Create poll schema"
   content_type = "application/json"
 
-  schema = templatefile("./modules/templates/models/create-poll.json", {})
+  schema = templatefile(
+    "./modules/templates/models/create-poll.json",
+    {
+      promptMinLength = var.prompt_min_length
+      promptMaxLength = var.prompt_max_length
+      optionMinLength = var.option_min_length
+      optionMaxLength = var.option_max_length
+      minOptions      = var.min_options
+      maxOptions      = var.max_options
+      minDuration     = var.min_duration
+      maxDuration     = var.max_duration
+    }
+  )
 }
 
 resource "aws_api_gateway_model" "archive_poll" {
