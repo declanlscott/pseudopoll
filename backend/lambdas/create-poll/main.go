@@ -153,6 +153,19 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		), nil
 	}
 
+	if requestBody.Duration < 1 {
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusBadRequest,
+				Body: formatError(
+					"Bad request",
+					errors.New("duration must be greater than 0"),
+				),
+			},
+			nil,
+		), nil
+	}
+
 	ddbPoll := DdbPoll{
 		PollId:    pollId,
 		UserId:    request.RequestContext.Authorizer["sub"].(string),
