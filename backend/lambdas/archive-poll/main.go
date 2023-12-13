@@ -38,7 +38,7 @@ func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatew
 		log.Printf("Error: %s", err)
 	}
 
-	log.Printf("Response: %s", res)
+	log.Printf("Response: %v", res)
 
 	return res
 }
