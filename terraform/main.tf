@@ -69,9 +69,6 @@ locals {
     aws_api_gateway_model.update_poll_duration,
     aws_api_gateway_model.error,
   ]))
-  polls_table_name   = "pseudopoll-polls"
-  options_table_name = "pseudopoll-options"
-  votes_table_name   = "pseudopoll-votes"
 }
 
 module "lambda_logging" {
@@ -151,6 +148,44 @@ resource "aws_api_gateway_model" "error" {
   schema = templatefile("./modules/templates/models/error.json", {})
 }
 
+resource "aws_dynamodb_table" "single_table" {
+  name         = "pseudopoll-single-table"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key  = "PK"
+  range_key = "SK"
+
+  global_secondary_index {
+    name            = "GSI1"
+    hash_key        = "GSI1PK"
+    range_key       = "GSI1SK"
+    projection_type = "ALL"
+  }
+
+  attribute {
+    name = "PK"
+    type = "S"
+  }
+
+  attribute {
+    name = "SK"
+    type = "S"
+  }
+
+  attribute {
+    name = "GSI1PK"
+    type = "S"
+  }
+
+  attribute {
+    name = "GSI1SK"
+    type = "S"
+  }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
+}
+
 module "poll_manager_microservice" {
   source                          = "./modules/microservices/poll-manager"
   rest_api_id                     = module.rest_api.id
@@ -163,9 +198,8 @@ module "poll_manager_microservice" {
   error_model_name                = aws_api_gateway_model.error.name
   parent_id                       = module.rest_api.root_resource_id
   custom_authorizer_id            = module.api_authorizer.id
-  polls_table_name                = local.polls_table_name
-  options_table_name              = local.options_table_name
-  votes_table_name                = local.votes_table_name
+  single_table_name               = aws_dynamodb_table.single_table.name
+  single_table_arn                = aws_dynamodb_table.single_table.arn
   nanoid_alphabet                 = var.nanoid_alphabet
   nanoid_length                   = var.nanoid_length
   lambda_logging_policy_arn       = module.lambda_logging.policy_arn
@@ -182,11 +216,8 @@ module "vote_queue_microservice" {
   public_poll_resource_id   = module.poll_manager_microservice.public_poll_resource_id
   lambda_logging_policy_arn = module.lambda_logging.policy_arn
   region                    = local.region
-  polls_table_name          = local.polls_table_name
-  polls_table_arn           = module.poll_manager_microservice.polls_table_arn
-  options_table_arn         = module.poll_manager_microservice.options_table_arn
-  options_table_name        = local.options_table_name
-  votes_table_name          = local.votes_table_name
+  single_table_name         = aws_dynamodb_table.single_table.name
+  single_table_arn          = aws_dynamodb_table.single_table.arn
 }
 
 module "event_bus" {

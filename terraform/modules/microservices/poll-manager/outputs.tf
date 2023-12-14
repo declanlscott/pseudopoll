@@ -45,11 +45,3 @@ output "poll_resource_id" {
 output "public_poll_resource_id" {
   value = aws_api_gateway_resource.public_poll.id
 }
-
-output "polls_table_arn" {
-  value = aws_dynamodb_table.polls_table.arn
-}
-
-output "options_table_arn" {
-  value = aws_dynamodb_table.options_table.arn
-}

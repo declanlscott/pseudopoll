@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,20 +19,24 @@ import (
 )
 
 type DdbPoll struct {
-	PollId    string `dynamodbav:"PollId"`
-	UserId    string `dynamodbav:"UserId"`
-	Prompt    string `dynamodbav:"Prompt"`
-	CreatedAt string `dynamodbav:"CreatedAt"`
-	Duration  int    `dynamodbav:"Duration"`
-	Archived  bool   `dynamodbav:"Archived"`
+	PkPollId     string `dynamodbav:"PK"`
+	SkPollId     string `dynamodbav:"SK"`
+	Gsi1PkUserId string `dynamodbav:"GSI1PK"`
+	Gsi1SkUserId string `dynamodbav:"GSI1SK"`
+	Prompt       string `dynamodbav:"Prompt"`
+	CreatedAt    string `dynamodbav:"CreatedAt"`
+	Duration     int    `dynamodbav:"Duration"`
+	Archived     bool   `dynamodbav:"Archived"`
 }
 
 type DdbOption struct {
-	OptionId  string `dynamodbav:"OptionId"`
-	PollId    string `dynamodbav:"PollId"`
-	Text      string `dynamodbav:"Text"`
-	UpdatedAt string `dynamodbav:"UpdatedAt"`
-	Votes     int    `dynamodbav:"Votes"`
+	PkOptionId   string `dynamodbav:"PK"`
+	SkOptionId   string `dynamodbav:"SK"`
+	Gsi1PkPollId string `dynamodbav:"GSI1PK"`
+	Gsi1SkPollId string `dynamodbav:"GSI1SK"`
+	Text         string `dynamodbav:"Text"`
+	UpdatedAt    string `dynamodbav:"UpdatedAt"`
+	Votes        int    `dynamodbav:"Votes"`
 }
 
 type Poll struct {
@@ -70,7 +75,7 @@ func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatew
 		log.Printf("Error: %s", err)
 	}
 
-	log.Printf("Response: %s", res)
+	log.Printf("Response: %v", res)
 
 	return res
 }
@@ -92,10 +97,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	ddb := dynamodb.NewFromConfig(cfg)
 
 	pollResult, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
+		TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
-			"PollId": &types.AttributeValueMemberS{
-				Value: pollId,
+			"PK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", pollId),
+			},
+			"SK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", pollId),
 			},
 		},
 	})
@@ -135,7 +143,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 
-		if ddbPoll.UserId != currentUserId {
+		if ddbPoll.Gsi1PkUserId != currentUserId {
 			err := errors.New("user is not authorized to access this poll")
 			return logAndReturn(
 				events.APIGatewayProxyResponse{
@@ -148,15 +156,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	optionsResult, err := ddb.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(os.Getenv("OPTIONS_TABLE_NAME")),
-		IndexName:              aws.String(os.Getenv("POLL_ID_INDEX_NAME")),
-		KeyConditionExpression: aws.String("#pollId = :pollId"),
+		TableName:              aws.String(os.Getenv("SINGLE_TABLE_NAME")),
+		IndexName:              aws.String("GSI1"),
+		KeyConditionExpression: aws.String("#poll = :poll"),
 		ExpressionAttributeNames: map[string]string{
-			"#pollId": "PollId",
+			"#poll": "GSI1PK",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pollId": &types.AttributeValueMemberS{
-				Value: pollId,
+			":poll": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", pollId),
 			},
 		},
 	})
@@ -185,7 +193,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}
 
 		options = append(options, Option{
-			OptionId:  ddbOption.OptionId,
+			OptionId:  ddbOption.PkOptionId,
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
@@ -193,8 +201,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    ddbPoll.PollId,
-		UserId:    ddbPoll.UserId,
+		PollId:    ddbPoll.PkPollId,
+		UserId:    ddbPoll.Gsi1PkUserId,
 		Prompt:    ddbPoll.Prompt,
 		Options:   options,
 		CreatedAt: ddbPoll.CreatedAt,

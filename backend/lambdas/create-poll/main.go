@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,20 +33,24 @@ type NanoIdOptions struct {
 }
 
 type DdbPoll struct {
-	PollId    string `dynamodbav:"PollId"`
-	UserId    string `dynamodbav:"UserId"`
-	Prompt    string `dynamodbav:"Prompt"`
-	CreatedAt string `dynamodbav:"CreatedAt"`
-	Duration  int    `dynamodbav:"Duration"`
-	Archived  bool   `dynamodbav:"Archived"`
+	PkPollId     string `dynamodbav:"PK"`
+	SkPollId     string `dynamodbav:"SK"`
+	Gsi1PkUserId string `dynamodbav:"GSI1PK"`
+	Gsi1SkUserId string `dynamodbav:"GSI1SK"`
+	Prompt       string `dynamodbav:"Prompt"`
+	CreatedAt    string `dynamodbav:"CreatedAt"`
+	Duration     int    `dynamodbav:"Duration"`
+	Archived     bool   `dynamodbav:"Archived"`
 }
 
 type DdbOption struct {
-	OptionId  string `dynamodbav:"OptionId"`
-	PollId    string `dynamodbav:"PollId"`
-	Text      string `dynamodbav:"Text"`
-	UpdatedAt string `dynamodbav:"UpdatedAt"`
-	Votes     int    `dynamodbav:"Votes"`
+	PkOptionId   string `dynamodbav:"PK"`
+	SkOptionId   string `dynamodbav:"SK"`
+	Gsi1PkPollId string `dynamodbav:"GSI1PK"`
+	Gsi1SkPollId string `dynamodbav:"GSI1SK"`
+	Text         string `dynamodbav:"Text"`
+	UpdatedAt    string `dynamodbav:"UpdatedAt"`
+	Votes        int    `dynamodbav:"Votes"`
 }
 
 type Poll struct {
@@ -99,7 +104,7 @@ func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatew
 		log.Printf("Error: %s", err)
 	}
 
-	log.Printf("Response: %s", res)
+	log.Printf("Response: %v", res)
 
 	return res
 }
@@ -167,12 +172,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	ddbPoll := DdbPoll{
-		PollId:    pollId,
-		UserId:    request.RequestContext.Authorizer["sub"].(string),
-		Prompt:    requestBody.Prompt,
-		CreatedAt: currentTime,
-		Duration:  requestBody.Duration,
-		Archived:  false,
+		PkPollId:     fmt.Sprintf("poll|%s", pollId),
+		SkPollId:     fmt.Sprintf("poll|%s", pollId),
+		Gsi1PkUserId: fmt.Sprintf("user|%s", request.RequestContext.Authorizer["sub"].(string)),
+		Gsi1SkUserId: fmt.Sprintf("user|%s", request.RequestContext.Authorizer["sub"].(string)),
+		Prompt:       requestBody.Prompt,
+		CreatedAt:    currentTime,
+		Duration:     requestBody.Duration,
+		Archived:     false,
 	}
 
 	item, err := attributevalue.MarshalMap(ddbPoll)
@@ -190,7 +197,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	var transactItems []types.TransactWriteItem
 	transactItem = types.TransactWriteItem{
 		Put: &types.Put{
-			TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
+			TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 			Item:      item,
 		},
 	}
@@ -211,11 +218,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}
 
 		ddbOption = DdbOption{
-			OptionId:  optionId,
-			PollId:    pollId,
-			Text:      text,
-			UpdatedAt: currentTime,
-			Votes:     0,
+			PkOptionId:   fmt.Sprintf("option|%s", optionId),
+			SkOptionId:   fmt.Sprintf("option|%s", optionId),
+			Gsi1PkPollId: fmt.Sprintf("poll|%s", pollId),
+			Gsi1SkPollId: fmt.Sprintf("poll|%s", pollId),
+			Text:         text,
+			UpdatedAt:    currentTime,
+			Votes:        0,
 		}
 
 		item, err := attributevalue.MarshalMap(ddbOption)
@@ -229,7 +238,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 		options = append(options, Option{
-			OptionId:  ddbOption.OptionId,
+			OptionId:  ddbOption.PkOptionId,
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
@@ -237,7 +246,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 		transactItem = types.TransactWriteItem{
 			Put: &types.Put{
-				TableName: aws.String(os.Getenv("OPTIONS_TABLE_NAME")),
+				TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 				Item:      item,
 			},
 		}
@@ -258,8 +267,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    ddbPoll.PollId,
-		UserId:    ddbPoll.UserId,
+		PollId:    ddbPoll.PkPollId,
+		UserId:    ddbPoll.Gsi1PkUserId,
 		Prompt:    ddbPoll.Prompt,
 		Options:   options,
 		CreatedAt: ddbPoll.CreatedAt,

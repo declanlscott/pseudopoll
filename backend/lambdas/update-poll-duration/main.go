@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,12 +25,14 @@ type Body struct {
 }
 
 type DdbPoll struct {
-	PollId    string `dynamodbav:"PollId"`
-	UserId    string `dynamodbav:"UserId"`
-	Prompt    string `dynamodbav:"Prompt"`
-	CreatedAt string `dynamodbav:"CreatedAt"`
-	Duration  int    `dynamodbav:"Duration"`
-	Archived  bool   `dynamodbav:"Archived"`
+	PkPollId     string `dynamodbav:"PK"`
+	SkPollId     string `dynamodbav:"SK"`
+	Gsi1PkUserId string `dynamodbav:"GSI1PK"`
+	Gsi1SkUserId string `dynamodbav:"GSI1SK"`
+	Prompt       string `dynamodbav:"Prompt"`
+	CreatedAt    string `dynamodbav:"CreatedAt"`
+	Duration     int    `dynamodbav:"Duration"`
+	Archived     bool   `dynamodbav:"Archived"`
 }
 
 type Error struct {
@@ -93,10 +96,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	ddb := dynamodb.NewFromConfig(cfg)
 
 	getPoll, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
+		TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
-			"PollId": &types.AttributeValueMemberS{
-				Value: request.PathParameters["pollId"],
+			"PK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
+			},
+			"SK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
 			},
 		},
 	})
@@ -177,21 +183,21 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
+		TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
-			"PollId": &types.AttributeValueMemberS{
-				Value: request.PathParameters["pollId"],
+			"PK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
 			},
 		},
-		ConditionExpression: aws.String("#userId = :userId"),
+		ConditionExpression: aws.String("#user = :user"),
 		UpdateExpression:    aws.String("SET #duration = :duration"),
 		ExpressionAttributeNames: map[string]string{
-			"#userId":   "UserId",
+			"#user":     "GSI1PK",
 			"#duration": "Duration",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":userId": &types.AttributeValueMemberS{
-				Value: request.RequestContext.Authorizer["sub"].(string),
+			":user": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("user|%s", request.RequestContext.Authorizer["sub"].(string)),
 			},
 			":duration": &types.AttributeValueMemberN{
 				Value: strconv.Itoa(duration),

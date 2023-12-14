@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -27,19 +28,21 @@ type MessageBody struct {
 }
 
 type DdbPoll struct {
-	PollId    string `dynamodbav:"PollId"`
-	UserId    string `dynamodbav:"UserId"`
-	Prompt    string `dynamodbav:"Prompt"`
-	CreatedAt string `dynamodbav:"CreatedAt"`
-	Duration  int64  `dynamodbav:"Duration"`
-	Archived  bool   `dynamodbav:"Archived"`
+	PkPollId     string `dynamodbav:"PK"`
+	SkPollId     string `dynamodbav:"SK"`
+	Gsi1PkUserId string `dynamodbav:"GSI1PK"`
+	Gsi1SkUserId string `dynamodbav:"GSI1SK"`
+	Prompt       string `dynamodbav:"Prompt"`
+	CreatedAt    string `dynamodbav:"CreatedAt"`
+	Duration     int64  `dynamodbav:"Duration"`
+	Archived     bool   `dynamodbav:"Archived"`
 }
 
 type DdbVote struct {
-	VoterId  string `dynamodbav:"VoterId"`
-	PollId   string `dynamodbav:"PollId"`
-	OptionId string `dynamodbav:"OptionId"`
-	VoteId   string `dynamodbav:"VoteId"`
+	PkVoterId string `dynamodbav:"PK"`
+	SkPollId  string `dynamodbav:"SK"`
+	OptionId  string `dynamodbav:"OptionId"`
+	VoteId    string `dynamodbav:"VoteId"`
 }
 
 func handler(ctx context.Context, event events.SQSEvent) {
@@ -74,10 +77,13 @@ func handler(ctx context.Context, event events.SQSEvent) {
 		requestTime := time.UnixMilli(requestTimeEpoch)
 
 		getPoll, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{
-			TableName: aws.String(os.Getenv("POLLS_TABLE_NAME")),
+			TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 			Key: map[string]types.AttributeValue{
-				"PollId": &types.AttributeValueMemberS{
-					Value: messageBody.PollId,
+				"PK": &types.AttributeValueMemberS{
+					Value: fmt.Sprintf("poll|%s", messageBody.PollId),
+				},
+				"SK": &types.AttributeValueMemberS{
+					Value: fmt.Sprintf("poll|%s", messageBody.PollId),
 				},
 			},
 		})
@@ -93,7 +99,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 		}
 
 		if ddbPoll.Archived {
-			log.Printf("Poll %s is archived\n", ddbPoll.PollId)
+			log.Printf("Poll %s is archived\n", ddbPoll.PkPollId)
 			continue
 		}
 
@@ -105,15 +111,15 @@ func handler(ctx context.Context, event events.SQSEvent) {
 
 		expirationTime := createdAt.Add(time.Duration(ddbPoll.Duration) * time.Second)
 		if requestTime.After(expirationTime) {
-			log.Printf("Poll %s has expired\n", ddbPoll.PollId)
+			log.Printf("Poll %s has expired\n", ddbPoll.PkPollId)
 			continue
 		}
 
 		item, err := attributevalue.MarshalMap(DdbVote{
-			VoterId:  voterId,
-			PollId:   messageBody.PollId,
-			OptionId: messageBody.OptionId,
-			VoteId:   messageBody.RequestId,
+			PkVoterId: fmt.Sprintf("voter|%s", voterId),
+			SkPollId:  fmt.Sprintf("poll|%s", messageBody.PollId),
+			OptionId:  messageBody.OptionId,
+			VoteId:    messageBody.RequestId,
 		})
 		if err != nil {
 			log.Printf("Error: %s\n", err)
@@ -124,33 +130,36 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			TransactItems: []types.TransactWriteItem{
 				{
 					Put: &types.Put{
-						TableName:           aws.String(os.Getenv("VOTES_TABLE_NAME")),
+						TableName:           aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 						Item:                item,
-						ConditionExpression: aws.String("attribute_not_exists(#voterId) AND attribute_not_exists(#pollId)"),
+						ConditionExpression: aws.String("attribute_not_exists(#voter) AND attribute_not_exists(#poll)"),
 						ExpressionAttributeNames: map[string]string{
-							"#voterId": "VoterId",
-							"#pollId":  "PollId",
+							"#voter": "PK",
+							"#poll":  "SK",
 						},
 					},
 				},
 				{
 					Update: &types.Update{
-						TableName: aws.String(os.Getenv("OPTIONS_TABLE_NAME")),
+						TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 						Key: map[string]types.AttributeValue{
-							"OptionId": &types.AttributeValueMemberS{
-								Value: messageBody.OptionId,
+							"PK": &types.AttributeValueMemberS{
+								Value: fmt.Sprintf("option|%s", messageBody.OptionId),
+							},
+							"SK": &types.AttributeValueMemberS{
+								Value: fmt.Sprintf("option|%s", messageBody.OptionId),
 							},
 						},
-						ConditionExpression: aws.String("#pollId = :pollId"),
+						ConditionExpression: aws.String("#poll = :poll"),
 						UpdateExpression:    aws.String("SET #votes = #votes + :vote, #updatedAt = :updatedAt"),
 						ExpressionAttributeNames: map[string]string{
-							"#pollId":    "PollId",
+							"#poll":      "GSI1PK",
 							"#votes":     "Votes",
 							"#updatedAt": "UpdatedAt",
 						},
 						ExpressionAttributeValues: map[string]types.AttributeValue{
-							":pollId": &types.AttributeValueMemberS{
-								Value: messageBody.PollId,
+							":poll": &types.AttributeValueMemberS{
+								Value: fmt.Sprintf("poll|%s", messageBody.PollId),
 							},
 							":vote": &types.AttributeValueMemberN{
 								Value: "1",

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -70,20 +71,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
-			"PollId": &types.AttributeValueMemberS{
-				Value: request.PathParameters["pollId"],
+			"PK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
+			},
+			"SK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
 			},
 		},
-		TableName:           aws.String(os.Getenv("POLLS_TABLE_NAME")),
-		ConditionExpression: aws.String("#userId = :userId AND #archived <> :archived"),
+		TableName:           aws.String(os.Getenv("SINGLE_TABLE_NAME")),
+		ConditionExpression: aws.String("#user = :user AND #archived <> :archived"),
 		UpdateExpression:    aws.String("SET #archived = :archived"),
 		ExpressionAttributeNames: map[string]string{
-			"#userId":   "UserId",
+			"#user":     "GSI1PK",
 			"#archived": "Archived",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":userId": &types.AttributeValueMemberS{
-				Value: request.RequestContext.Authorizer["sub"].(string),
+			":user": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("user|%s", request.RequestContext.Authorizer["sub"].(string)),
 			},
 			":archived": &types.AttributeValueMemberBOOL{
 				Value: requestBody.Archived,

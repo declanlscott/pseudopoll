@@ -158,43 +158,18 @@ data "aws_iam_policy_document" "vote_sqs_ddb" {
 
     actions = [
       "dynamodb:GetItem",
-    ]
-
-    resources = [
-      var.polls_table_arn,
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
       "dynamodb:TransactWriteItems",
       "dynamodb:UpdateItem",
-    ]
-
-    resources = [
-      var.options_table_arn,
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "dynamodb:TransactWriteItems",
       "dynamodb:PutItem",
     ]
 
-    resources = [
-      aws_dynamodb_table.votes_table.arn,
-    ]
+    resources = [var.single_table_arn]
   }
 }
 
 resource "aws_iam_policy" "vote_sqs_ddb" {
   name        = "pseudopoll-vote-sqs-ddb"
-  description = "IAM policy to receive messages from the vote queue and interact with polls, options, and votes tables"
+  description = "IAM policy to receive messages from the vote queue and interact with dynamodb"
   path        = "/"
   policy      = data.aws_iam_policy_document.vote_sqs_ddb.json
 }
@@ -211,30 +186,5 @@ module "vote_lambda" {
   archive_source_file = "${path.module}/../../../../backend/lambdas/vote/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/vote/bin/vote.zip"
 
-  environment_variables = {
-    POLLS_TABLE_NAME   = var.polls_table_name
-    OPTIONS_TABLE_NAME = var.options_table_name
-    VOTES_TABLE_NAME   = var.votes_table_name
-  }
-}
-
-resource "aws_dynamodb_table" "votes_table" {
-  name         = var.votes_table_name
-  billing_mode = "PAY_PER_REQUEST"
-
-  hash_key  = "VoterId"
-  range_key = "PollId"
-
-  attribute {
-    name = "VoterId"
-    type = "S"
-  }
-
-  attribute {
-    name = "PollId"
-    type = "S"
-  }
-
-  stream_enabled   = true
-  stream_view_type = "NEW_IMAGE"
+  environment_variables = { SINGLE_TABLE_NAME = var.single_table_name }
 }

@@ -97,10 +97,7 @@ data "aws_iam_policy_document" "create_poll_lambda_ddb" {
       "dynamodb:PutItem"
     ]
 
-    resources = [
-      aws_dynamodb_table.polls_table.arn,
-      aws_dynamodb_table.options_table.arn
-    ]
+    resources = [var.single_table_arn]
   }
 }
 
@@ -124,10 +121,9 @@ module "create_poll_lambda" {
   archive_output_path = "${path.module}/../../../../backend/lambdas/create-poll/bin/create-poll.zip"
 
   environment_variables = {
-    POLLS_TABLE_NAME   = aws_dynamodb_table.polls_table.name
-    OPTIONS_TABLE_NAME = aws_dynamodb_table.options_table.name
-    NANOID_ALPHABET    = var.nanoid_alphabet
-    NANOID_LENGTH      = "${var.nanoid_length}"
+    SINGLE_TABLE_NAME = var.single_table_arn
+    NANOID_ALPHABET   = var.nanoid_alphabet
+    NANOID_LENGTH     = "${var.nanoid_length}"
   }
 }
 
@@ -231,7 +227,7 @@ data "aws_iam_policy_document" "archive_poll_lambda_ddb" {
 
     actions = ["dynamodb:UpdateItem"]
 
-    resources = [aws_dynamodb_table.polls_table.arn]
+    resources = [var.single_table_arn]
   }
 }
 
@@ -254,9 +250,7 @@ module "archive_poll_lambda" {
   archive_source_file = "${path.module}/../../../../backend/lambdas/archive-poll/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/archive-poll/bin/archive-poll.zip"
 
-  environment_variables = {
-    POLLS_TABLE_NAME = aws_dynamodb_table.polls_table.name
-  }
+  environment_variables = { SINGLE_TABLE_NAME = var.single_table_name }
 }
 
 resource "aws_api_gateway_method_response" "delete_ok" {
@@ -347,9 +341,8 @@ data "aws_iam_policy_document" "get_poll_lambda_ddb" {
     ]
 
     resources = [
-      aws_dynamodb_table.polls_table.arn,
-      aws_dynamodb_table.options_table.arn,
-      "${aws_dynamodb_table.options_table.arn}/index/${local.poll_id_index_name}"
+      var.single_table_arn,
+      "${var.single_table_arn}/index/GSI1"
     ]
   }
 }
@@ -373,11 +366,7 @@ module "get_poll_lambda" {
   archive_source_file = "${path.module}/../../../../backend/lambdas/get-poll/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/get-poll/bin/get-poll.zip"
 
-  environment_variables = {
-    POLLS_TABLE_NAME   = aws_dynamodb_table.polls_table.name
-    OPTIONS_TABLE_NAME = aws_dynamodb_table.options_table.name
-    POLL_ID_INDEX_NAME = local.poll_id_index_name
-  }
+  environment_variables = { SINGLE_TABLE_NAME = var.single_table_name }
 }
 
 resource "aws_api_gateway_method_response" "get_ok" {
@@ -483,9 +472,7 @@ data "aws_iam_policy_document" "update_poll_duration_lambda_ddb" {
       "dynamodb:UpdateItem",
     ]
 
-    resources = [
-      aws_dynamodb_table.polls_table.arn,
-    ]
+    resources = [var.single_table_arn]
   }
 }
 
@@ -508,9 +495,7 @@ module "update_poll_duration_lambda" {
   archive_source_file = "${path.module}/../../../../backend/lambdas/update-poll-duration/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/update-poll-duration/bin/update-poll-duration.zip"
 
-  environment_variables = {
-    POLLS_TABLE_NAME = aws_dynamodb_table.polls_table.name
-  }
+  environment_variables = { SINGLE_TABLE_NAME = var.single_table_name }
 }
 
 resource "aws_api_gateway_method_response" "patch_ok" {
@@ -637,64 +622,4 @@ resource "aws_api_gateway_method_response" "public_get_internal_server_error" {
   response_models = {
     "application/json" = var.error_model_name
   }
-}
-
-locals {
-  user_id_index_name = "UserId-index"
-}
-
-resource "aws_dynamodb_table" "polls_table" {
-  name         = "pseudopoll-polls"
-  billing_mode = "PAY_PER_REQUEST"
-
-  hash_key = "PollId"
-
-  global_secondary_index {
-    name            = local.user_id_index_name
-    hash_key        = "UserId"
-    projection_type = "ALL"
-  }
-
-  attribute {
-    name = "PollId"
-    type = "S"
-  }
-
-  attribute {
-    name = "UserId"
-    type = "S"
-  }
-
-  stream_enabled   = true
-  stream_view_type = "NEW_IMAGE"
-}
-
-locals {
-  poll_id_index_name = "PollId-index"
-}
-
-resource "aws_dynamodb_table" "options_table" {
-  name         = "pseudopoll-options"
-  billing_mode = "PAY_PER_REQUEST"
-
-  hash_key = "OptionId"
-
-  global_secondary_index {
-    name            = local.poll_id_index_name
-    hash_key        = "PollId"
-    projection_type = "ALL"
-  }
-
-  attribute {
-    name = "OptionId"
-    type = "S"
-  }
-
-  attribute {
-    name = "PollId"
-    type = "S"
-  }
-
-  stream_enabled   = true
-  stream_view_type = "NEW_IMAGE"
 }

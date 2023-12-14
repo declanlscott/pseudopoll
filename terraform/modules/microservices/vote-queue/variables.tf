@@ -43,27 +43,12 @@ variable "region" {
   type        = string
 }
 
-variable "polls_table_name" {
-  description = "Name of the polls table"
+variable "single_table_name" {
+  description = "Name of the single table"
   type        = string
 }
 
-variable "polls_table_arn" {
-  description = "ARN of the polls table"
-  type        = string
-}
-
-variable "options_table_name" {
-  description = "Name of the options table"
-  type        = string
-}
-
-variable "options_table_arn" {
-  description = "ARN of the options table"
-  type        = string
-}
-
-variable "votes_table_name" {
-  description = "Name of the votes table"
+variable "single_table_arn" {
+  description = "ARN of the single table"
   type        = string
 }
