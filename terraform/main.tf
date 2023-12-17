@@ -186,6 +186,8 @@ resource "aws_dynamodb_table" "single_table" {
   stream_view_type = "NEW_IMAGE"
 }
 
+
+
 module "poll_manager_microservice" {
   source                          = "./modules/microservices/poll-manager"
   rest_api_id                     = module.rest_api.id
@@ -220,7 +222,8 @@ module "vote_queue_microservice" {
   single_table_arn          = aws_dynamodb_table.single_table.arn
 }
 
-module "event_bus" {
-  source = "./modules/microservices/event-bus"
-  name   = "pseudopoll-event-bus"
+module "event_bridge" {
+  source         = "./modules/microservices/event-bridge"
+  bus_name       = "pseudopoll-event-bus"
+  ddb_stream_arn = aws_dynamodb_table.single_table.stream_arn
 }
