@@ -52,3 +52,13 @@ variable "single_table_arn" {
   description = "ARN of the single table"
   type        = string
 }
+
+variable "event_bus_name" {
+  description = "Name of the event bus"
+  type        = string
+}
+
+variable "event_bus_arn" {
+  description = "ARN of the event bus"
+  type        = string
+}

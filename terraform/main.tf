@@ -183,10 +183,13 @@ resource "aws_dynamodb_table" "single_table" {
   }
 
   stream_enabled   = true
-  stream_view_type = "NEW_IMAGE"
+  stream_view_type = "NEW_AND_OLD_IMAGES"
 }
 
-
+module "choreography" {
+  source         = "./modules/choreography"
+  ddb_stream_arn = aws_dynamodb_table.single_table.stream_arn
+}
 
 module "poll_manager_microservice" {
   source                          = "./modules/microservices/poll-manager"
@@ -220,10 +223,6 @@ module "vote_queue_microservice" {
   region                    = local.region
   single_table_name         = aws_dynamodb_table.single_table.name
   single_table_arn          = aws_dynamodb_table.single_table.arn
-}
-
-module "event_bridge" {
-  source         = "./modules/microservices/event-bridge"
-  bus_name       = "pseudopoll-event-bus"
-  ddb_stream_arn = aws_dynamodb_table.single_table.stream_arn
+  event_bus_name            = module.choreography.event_bus_name
+  event_bus_arn             = module.choreography.event_bus_arn
 }

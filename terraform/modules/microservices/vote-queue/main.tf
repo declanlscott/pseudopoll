@@ -140,7 +140,7 @@ resource "aws_iam_role_policy_attachment" "vote_logging" {
   policy_arn = var.lambda_logging_policy_arn
 }
 
-data "aws_iam_policy_document" "vote_sqs_ddb" {
+data "aws_iam_policy_document" "vote_sqs_dynamodb_events" {
   statement {
     effect = "Allow"
 
@@ -165,18 +165,26 @@ data "aws_iam_policy_document" "vote_sqs_ddb" {
 
     resources = [var.single_table_arn]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = ["events:PutEvents"]
+
+    resources = [var.event_bus_arn]
+  }
 }
 
-resource "aws_iam_policy" "vote_sqs_ddb" {
+resource "aws_iam_policy" "vote_sqs_dynamodb_events" {
   name        = "pseudopoll-vote-sqs-ddb"
-  description = "IAM policy to receive messages from the vote queue and interact with dynamodb"
+  description = "IAM policy to receive messages from the vote queue, interact with dynamodb, and send events to the event bus"
   path        = "/"
-  policy      = data.aws_iam_policy_document.vote_sqs_ddb.json
+  policy      = data.aws_iam_policy_document.vote_sqs_dynamodb_events.json
 }
 
-resource "aws_iam_role_policy_attachment" "vote_sqs_ddb" {
+resource "aws_iam_role_policy_attachment" "vote_sqs_dynamodb_events" {
   role       = module.vote_lambda_role.role_name
-  policy_arn = aws_iam_policy.vote_sqs_ddb.arn
+  policy_arn = aws_iam_policy.vote_sqs_dynamodb_events.arn
 }
 
 module "vote_lambda" {
@@ -186,5 +194,8 @@ module "vote_lambda" {
   archive_source_file = "${path.module}/../../../../backend/lambdas/vote/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/vote/bin/vote.zip"
 
-  environment_variables = { SINGLE_TABLE_NAME = var.single_table_name }
+  environment_variables = {
+    SINGLE_TABLE_NAME = var.single_table_name
+    EVENT_BUS_NAME    = var.event_bus_name
+  }
 }

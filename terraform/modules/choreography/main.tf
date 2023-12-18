@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_event_bus" "event_bus" {
-  name = var.bus_name
+  name = "pseudopoll-event-bus"
 }
 
 data "aws_caller_identity" "main" {}
@@ -80,6 +80,13 @@ resource "aws_pipes_pipe" "pipe" {
       dead_letter_config {
         arn = aws_sqs_queue.pipe_dlq.arn
       }
+    }
+  }
+
+  target_parameters {
+    eventbridge_event_bus_parameters {
+      detail_type = "DdbStreamEvent"
+      source      = "pseudopoll.ddb-stream"
     }
   }
 
