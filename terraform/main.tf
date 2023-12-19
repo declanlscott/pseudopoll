@@ -38,6 +38,21 @@ module "remote_backend" {
   source = "./modules/remote-backend"
 }
 
+locals {
+  region = "us-east-2"
+  resources_hash = sha1(jsonencode([
+    aws_api_gateway_model.poll,
+    aws_api_gateway_model.create_poll,
+    aws_api_gateway_model.archive_poll,
+    aws_api_gateway_model.update_poll_duration,
+    aws_api_gateway_model.error,
+  ]))
+  ddb_stream_pipe_event_source      = "pseudopoll.ddb-stream"
+  ddb_stream_pipe_event_detail_type = "DdbStreamEvent"
+  vote_failed_source                = "pseudopoll.vote-queue"
+  vote_failed_detail_type           = "VoteFailed"
+}
+
 resource "aws_route53_zone" "zone" {
   name = var.domain_name
 }
@@ -58,17 +73,6 @@ module "rest_api" {
     module.vote_queue_microservice.resources_hash,
     local.resources_hash,
   ])
-}
-
-locals {
-  region = "us-east-2"
-  resources_hash = sha1(jsonencode([
-    aws_api_gateway_model.poll,
-    aws_api_gateway_model.create_poll,
-    aws_api_gateway_model.archive_poll,
-    aws_api_gateway_model.update_poll_duration,
-    aws_api_gateway_model.error,
-  ]))
 }
 
 module "lambda_logging" {
@@ -189,6 +193,23 @@ resource "aws_dynamodb_table" "single_table" {
 module "choreography" {
   source         = "./modules/choreography"
   ddb_stream_arn = aws_dynamodb_table.single_table.stream_arn
+
+  vote_result_publisher_lambda_function_name = module.publisher_microservice.vote_result_publisher_lambda_function_name
+  vote_result_publisher_lambda_arn           = module.publisher_microservice.vote_result_publisher_lambda_arn
+  vote_result_publisher_lambda_alias_name    = module.publisher_microservice.vote_result_publisher_lambda_alias_name
+
+  vote_count_publisher_lambda_function_name = module.publisher_microservice.vote_count_publisher_lambda_function_name
+  vote_count_publisher_lambda_arn           = module.publisher_microservice.vote_count_publisher_lambda_arn
+  vote_count_publisher_lambda_alias_name    = module.publisher_microservice.vote_count_publisher_lambda_alias_name
+
+  poll_modification_publisher_lambda_function_name = module.publisher_microservice.poll_modification_publisher_lambda_function_name
+  poll_modification_publisher_lambda_arn           = module.publisher_microservice.poll_modification_publisher_lambda_arn
+  poll_modification_publisher_lambda_alias_name    = module.publisher_microservice.poll_modification_publisher_lambda_alias_name
+
+  ddb_stream_pipe_event_source      = local.ddb_stream_pipe_event_source
+  ddb_stream_pipe_event_detail_type = local.ddb_stream_pipe_event_detail_type
+  vote_failed_source                = local.vote_failed_source
+  vote_failed_detail_type           = local.vote_failed_detail_type
 }
 
 module "poll_manager_microservice" {
@@ -225,4 +246,14 @@ module "vote_queue_microservice" {
   single_table_arn          = aws_dynamodb_table.single_table.arn
   event_bus_name            = module.choreography.event_bus_name
   event_bus_arn             = module.choreography.event_bus_arn
+}
+
+module "publisher_microservice" {
+  source                            = "./modules/microservices/publisher"
+  lambda_logging_policy_arn         = module.lambda_logging.policy_arn
+  ddb_stream_pipe_event_source      = local.ddb_stream_pipe_event_source
+  ddb_stream_pipe_event_detail_type = local.ddb_stream_pipe_event_detail_type
+  vote_failed_source                = local.vote_failed_source
+  vote_failed_detail_type           = local.vote_failed_detail_type
+  region                            = local.region
 }
