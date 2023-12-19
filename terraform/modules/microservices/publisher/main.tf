@@ -127,3 +127,27 @@ resource "aws_lambda_alias" "poll_modification_publisher_alias" {
   function_name    = module.poll_modification_publisher_lambda.function_name
   function_version = "$LATEST"
 }
+
+module "iot_authorizer_lambda_role" {
+  source    = "../../lambda/iam"
+  role_name = "pseudopoll-iot-authorizer-lambda-role"
+}
+
+module "iot_authorizer_lambda" {
+  source              = "../../lambda"
+  function_name       = "pseudopoll-iot-authorizer"
+  role_arn            = module.iot_authorizer_lambda_role.role_arn
+  archive_source_file = "${path.module}/../../../../backend/lambdas/iot-authorizer/bin/bootstrap"
+  archive_output_path = "${path.module}/../../../../backend/lambdas/iot-authorizer/bin/iot-authorizer.zip"
+
+  environment_variables = {
+    AWS_ACCOUNT_ID = data.aws_caller_identity.main.account_id
+  }
+}
+
+resource "aws_iot_authorizer" "iot_authorizer" {
+  name                    = "pseudopoll-iot-authorizer"
+  authorizer_function_arn = module.iot_authorizer_lambda.arn
+  signing_disabled        = true
+  status                  = "ACTIVE"
+}
