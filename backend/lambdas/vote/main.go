@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +16,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+	ebTypes "github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 )
 
 type MessageBody struct {
@@ -45,6 +48,26 @@ type DdbVote struct {
 	VoteId    string `dynamodbav:"VoteId"`
 }
 
+func handleError(ctx context.Context, err error, requestId string, ebClient *eventbridge.Client) {
+	log.Printf("Error: %s\n", err)
+
+	input := &eventbridge.PutEventsInput{
+		Entries: []ebTypes.PutEventsRequestEntry{
+			{
+				EventBusName: aws.String(os.Getenv("EVENT_BUS_NAME")),
+				Source:       aws.String("pseudopoll.vote-queue"),
+				DetailType:   aws.String("VoteFailed"),
+				Detail:       aws.String(fmt.Sprintf(`{"requestId": "%s", "error": "%s"}`, requestId, err.Error())),
+			},
+		},
+	}
+
+	_, err = ebClient.PutEvents(ctx, input)
+	if err != nil {
+		log.Printf("Error: %s\n", err)
+	}
+}
+
 func handler(ctx context.Context, event events.SQSEvent) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -53,6 +76,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 	}
 
 	ddb := dynamodb.NewFromConfig(cfg)
+	ebClient := eventbridge.NewFromConfig(cfg)
 
 	var messageBody MessageBody
 	var ddbPoll DdbPoll
@@ -71,47 +95,47 @@ func handler(ctx context.Context, event events.SQSEvent) {
 
 		requestTimeEpoch, err := strconv.ParseInt(messageBody.RequestTimeEpoch, 10, 64)
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 		requestTime := time.UnixMilli(requestTimeEpoch)
 
 		getPoll, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{
 			TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
-			Key: map[string]types.AttributeValue{
-				"PK": &types.AttributeValueMemberS{
+			Key: map[string]ddbTypes.AttributeValue{
+				"PK": &ddbTypes.AttributeValueMemberS{
 					Value: fmt.Sprintf("poll|%s", messageBody.PollId),
 				},
-				"SK": &types.AttributeValueMemberS{
+				"SK": &ddbTypes.AttributeValueMemberS{
 					Value: fmt.Sprintf("poll|%s", messageBody.PollId),
 				},
 			},
 		})
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 
 		err = attributevalue.UnmarshalMap(getPoll.Item, &ddbPoll)
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 
 		if ddbPoll.Archived {
-			log.Printf("Poll %s is archived\n", ddbPoll.PkPollId)
+			handleError(ctx, errors.New(fmt.Sprintf("poll %s is archived", ddbPoll.PkPollId)), messageBody.RequestId, ebClient)
 			continue
 		}
 
 		createdAt, err := time.Parse(time.RFC3339, ddbPoll.CreatedAt)
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 
 		expirationTime := createdAt.Add(time.Duration(ddbPoll.Duration) * time.Second)
 		if requestTime.After(expirationTime) {
-			log.Printf("Poll %s has expired\n", ddbPoll.PkPollId)
+			handleError(ctx, errors.New(fmt.Sprintf("poll %s has expired", ddbPoll.PkPollId)), messageBody.RequestId, ebClient)
 			continue
 		}
 
@@ -122,14 +146,14 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			VoteId:    messageBody.RequestId,
 		})
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 
 		_, err = ddb.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
-			TransactItems: []types.TransactWriteItem{
+			TransactItems: []ddbTypes.TransactWriteItem{
 				{
-					Put: &types.Put{
+					Put: &ddbTypes.Put{
 						TableName:           aws.String(os.Getenv("SINGLE_TABLE_NAME")),
 						Item:                item,
 						ConditionExpression: aws.String("attribute_not_exists(#voter) AND attribute_not_exists(#poll)"),
@@ -140,13 +164,13 @@ func handler(ctx context.Context, event events.SQSEvent) {
 					},
 				},
 				{
-					Update: &types.Update{
+					Update: &ddbTypes.Update{
 						TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
-						Key: map[string]types.AttributeValue{
-							"PK": &types.AttributeValueMemberS{
+						Key: map[string]ddbTypes.AttributeValue{
+							"PK": &ddbTypes.AttributeValueMemberS{
 								Value: fmt.Sprintf("option|%s", messageBody.OptionId),
 							},
-							"SK": &types.AttributeValueMemberS{
+							"SK": &ddbTypes.AttributeValueMemberS{
 								Value: fmt.Sprintf("option|%s", messageBody.OptionId),
 							},
 						},
@@ -157,30 +181,31 @@ func handler(ctx context.Context, event events.SQSEvent) {
 							"#votes":     "Votes",
 							"#updatedAt": "UpdatedAt",
 						},
-						ExpressionAttributeValues: map[string]types.AttributeValue{
-							":poll": &types.AttributeValueMemberS{
+						ExpressionAttributeValues: map[string]ddbTypes.AttributeValue{
+							":poll": &ddbTypes.AttributeValueMemberS{
 								Value: fmt.Sprintf("poll|%s", messageBody.PollId),
 							},
-							":vote": &types.AttributeValueMemberN{
+							":vote": &ddbTypes.AttributeValueMemberN{
 								Value: "1",
 							},
-							":updatedAt": &types.AttributeValueMemberS{
+							":updatedAt": &ddbTypes.AttributeValueMemberS{
 								Value: requestTime.Format(time.RFC3339),
 							},
 						},
 					},
 				},
 			},
-			ReturnItemCollectionMetrics: types.ReturnItemCollectionMetricsSize,
 		})
 		if err != nil {
-			log.Printf("Error: %s\n", err)
+			handleError(ctx, err, messageBody.RequestId, ebClient)
 			continue
 		}
 
 		log.Printf(
 			"Successfully voted for option %s on poll %s by voter %s\n",
-			messageBody.OptionId, messageBody.PollId, voterId,
+			messageBody.OptionId,
+			messageBody.PollId,
+			voterId,
 		)
 	}
 }
