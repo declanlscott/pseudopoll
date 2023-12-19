@@ -84,8 +84,8 @@ module "api_authorizer" {
   name                      = "pseudopoll-authorizer"
   function_name             = "pseudopoll-authorizer"
   rest_api_id               = module.rest_api.id
-  archive_source_file       = "${path.module}/../backend/lambdas/authorizer/bin/bootstrap"
-  archive_output_path       = "${path.module}/../backend/lambdas/authorizer/bin/authorizer.zip"
+  archive_source_file       = "${path.module}/../backend/lambdas/api-authorizer/bin/bootstrap"
+  archive_output_path       = "${path.module}/../backend/lambdas/api-authorizer/bin/api-authorizer.zip"
   jwks_uri                  = var.jwks_uri
   audience                  = var.audience
   token_issuer              = var.token_issuer
