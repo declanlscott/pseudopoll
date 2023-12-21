@@ -18,5 +18,4 @@ export const env = createEnv({
     MIN_DURATION: z.preprocess(Number, z.number().int().positive()),
     MAX_DURATION: z.preprocess(Number, z.number().int().positive()),
   },
-  client: {},
 });
