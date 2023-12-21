@@ -9,13 +9,27 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
     NANO_ID_ALPHABET: z.string(),
     NANO_ID_LENGTH: z.preprocess(Number, z.number().int().positive()),
-    PROMPT_MIN_LENGTH: z.preprocess(Number, z.number().int().positive()),
-    PROMPT_MAX_LENGTH: z.preprocess(Number, z.number().int().positive()),
-    OPTION_MIN_LENGTH: z.preprocess(Number, z.number().int().positive()),
-    OPTION_MAX_LENGTH: z.preprocess(Number, z.number().int().positive()),
-    MIN_OPTIONS: z.preprocess(Number, z.number().int().positive()),
-    MAX_OPTIONS: z.preprocess(Number, z.number().int().positive()),
-    MIN_DURATION: z.preprocess(Number, z.number().int().positive()),
-    MAX_DURATION: z.preprocess(Number, z.number().int().positive()),
+  },
+  client: {
+    NUXT_PUBLIC_PROMPT_MIN_LENGTH: z.preprocess(
+      Number,
+      z.number().int().positive(),
+    ),
+    NUXT_PUBLIC_PROMPT_MAX_LENGTH: z.preprocess(
+      Number,
+      z.number().int().positive(),
+    ),
+    NUXT_PUBLIC_OPTION_MIN_LENGTH: z.preprocess(
+      Number,
+      z.number().int().positive(),
+    ),
+    NUXT_PUBLIC_OPTION_MAX_LENGTH: z.preprocess(
+      Number,
+      z.number().int().positive(),
+    ),
+    NUXT_PUBLIC_MIN_OPTIONS: z.preprocess(Number, z.number().int().positive()),
+    NUXT_PUBLIC_MAX_OPTIONS: z.preprocess(Number, z.number().int().positive()),
+    NUXT_PUBLIC_MIN_DURATION: z.preprocess(Number, z.number().int().positive()),
+    NUXT_PUBLIC_MAX_DURATION: z.preprocess(Number, z.number().int().positive()),
   },
 });

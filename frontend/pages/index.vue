@@ -4,7 +4,7 @@ const { status } = useAuth();
 
 const prompt = ref("");
 const options = ref(Array.from({ length: 2 }, () => ""));
-const duration = ref(runtimeConfig.public.MIN_DURATION);
+const duration = ref(runtimeConfig.public.minDuration);
 </script>
 
 <template>
@@ -30,7 +30,7 @@ const duration = ref(runtimeConfig.public.MIN_DURATION);
           <UTooltip
             v-if="
               index === options.length - 1 &&
-              index < runtimeConfig.public.MAX_OPTIONS - 1
+              index < $config.public.maxOptions - 1
             "
             :text="`Add option ${index + 2}`"
           >
@@ -53,12 +53,16 @@ const duration = ref(runtimeConfig.public.MIN_DURATION);
       </ul>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-lg font-bold" for="duration">Duration</label>
+        <div class="flex items-end justify-between">
+          <label class="text-lg font-bold" for="duration">Duration</label>
+          <span>{{ duration }}</span>
+        </div>
+
         <URange
           id="duration"
           v-model="duration"
-          :min="runtimeConfig.public.MIN_DURATION"
-          :max="runtimeConfig.public.MAX_DURATION"
+          :min="$config.public.minDuration"
+          :max="$config.public.maxDuration"
           name="duration"
         ></URange>
       </div>
