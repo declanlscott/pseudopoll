@@ -1,67 +1,79 @@
 import { z } from "zod";
 
-import { env } from "~/env";
+import type { PublicRuntimeConfig } from "nuxt/schema";
 
+const nanoIdLength = Number(process.env.NUXT_NANO_ID_LENGTH);
+const nanoIdAlphabet = process.env.NUXT_NANO_ID_ALPHABET;
 const nanoIdSchema = (propertyName: string) =>
   z
     .string()
-    .min(env.NANO_ID_LENGTH, {
-      message: `${propertyName} should be ${env.NANO_ID_LENGTH} characters long.`,
+    .min(nanoIdLength, {
+      message: `${propertyName} should be ${nanoIdLength} characters long.`,
     })
     .max(12, {
-      message: `${propertyName} should be ${env.NANO_ID_LENGTH} characters long.`,
+      message: `${propertyName} should be ${nanoIdLength} characters long.`,
     })
-    .regex(new RegExp(`^[${env.NANO_ID_ALPHABET}]+$`), {
-      message: `${propertyName} should only contain characters from the alphabet: ${env.NANO_ID_ALPHABET}.`,
+    .regex(new RegExp(`^[${nanoIdAlphabet}]+$`), {
+      message: `${propertyName} should only contain characters from the alphabet: ${nanoIdAlphabet}.`,
     });
 
-const durationSchema = z
-  .number()
-  .int()
-  .positive()
-  .min(
-    env.MIN_DURATION,
-    `Poll duration should be at least ${env.MIN_DURATION} seconds.`,
-  )
-  .max(
-    env.MAX_DURATION,
-    `Poll duration should be at most ${env.MAX_DURATION} seconds.`,
-  );
+const durationSchema = ({ minDuration, maxDuration }: PublicRuntimeConfig) =>
+  z
+    .number()
+    .int()
+    .positive()
+    .min(
+      minDuration,
+      `Poll duration should be at least ${minDuration} seconds.`,
+    )
+    .max(
+      maxDuration,
+      `Poll duration should be at most ${maxDuration} seconds.`,
+    );
 
-export const createPollBodySchema = z.object({
-  prompt: z
-    .string()
-    .min(
-      env.PROMPT_MIN_LENGTH,
-      `Prompt should be at least ${env.PROMPT_MIN_LENGTH} characters.`,
-    )
-    .max(
-      env.PROMPT_MAX_LENGTH,
-      `Prompt should be at most ${env.PROMPT_MAX_LENGTH} characters.`,
-    ),
-  options: z
-    .array(
-      z
-        .string()
-        .min(
-          env.OPTION_MIN_LENGTH,
-          `Option should be at least ${env.OPTION_MIN_LENGTH} characters.`,
-        )
-        .max(
-          env.OPTION_MAX_LENGTH,
-          `Option should be at most ${env.OPTION_MAX_LENGTH} characters.`,
-        ),
-    )
-    .min(
-      env.MIN_OPTIONS,
-      `Poll should have at least ${env.MIN_OPTIONS} options.`,
-    )
-    .max(
-      env.MAX_OPTIONS,
-      `Poll should have at most ${env.MAX_OPTIONS} options.`,
-    ),
-  duration: durationSchema,
-});
+export const createPollBodySchema = (config: PublicRuntimeConfig) => {
+  const {
+    promptMinLength,
+    promptMaxLength,
+    optionMinLength,
+    optionMaxLength,
+    minOptions,
+    maxOptions,
+  } = config;
+
+  return z.object({
+    prompt: z
+      .string()
+      .min(
+        promptMinLength,
+        `Prompt should be at least ${promptMinLength} character${
+          promptMinLength === 1 ? "" : "s"
+        }.`,
+      )
+      .max(
+        promptMaxLength,
+        `Prompt should be at most ${promptMaxLength} characters.`,
+      ),
+    options: z
+      .array(
+        z
+          .string()
+          .min(
+            optionMinLength,
+            `Option should be at least ${optionMinLength} character${
+              optionMinLength === 1 ? "" : "s"
+            }.`,
+          )
+          .max(
+            optionMaxLength,
+            `Option should be at most ${optionMaxLength} characters.`,
+          ),
+      )
+      .min(minOptions, `Poll should have at least ${minOptions} options.`)
+      .max(maxOptions, `Poll should have at most ${maxOptions} options.`),
+    duration: durationSchema(config),
+  });
+};
 
 export const getPollRouterParamsSchema = z.object({
   pollId: nanoIdSchema("Poll ID"),
@@ -84,6 +96,6 @@ export const updatePollDurationRouterParamsSchema = z.object({
   pollId: nanoIdSchema("Poll ID"),
 });
 
-export const updatePollDurationBodySchema = z.object({
-  duration: z.union([z.literal(-1), durationSchema]),
-});
+// export const updatePollDurationBodySchema = z.object({
+//   duration: z.union([z.literal(-1), durationSchema]),
+// });

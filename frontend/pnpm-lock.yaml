@@ -17,9 +17,6 @@ dependencies:
   '@t3-oss/env-nuxt':
     specifier: ^0.7.1
     version: 0.7.1(typescript@5.3.2)(zod@3.22.4)
-  '@vee-validate/zod':
-    specifier: ^4.12.3
-    version: 4.12.3(vue@3.3.13)
   clsx:
     specifier: ^2.0.0
     version: 2.0.0
@@ -29,9 +26,6 @@ dependencies:
   tailwind-merge:
     specifier: ^2.1.0
     version: 2.1.0
-  vee-validate:
-    specifier: ^4.12.3
-    version: 4.12.3(vue@3.3.13)
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -2291,16 +2285,6 @@ packages:
       hookable: 5.5.3
       unhead: 1.8.8
       vue: 3.3.13(typescript@5.3.2)
-
-  /@vee-validate/zod@4.12.3(vue@3.3.13):
-    resolution: {integrity: sha512-9qXi433ISGgneBL5D/YpVvcVRqY3EvDnoTnTD6Y16QeBulcS4u3zHrPlJ0K0iKtAUKnfsTzUppud10GWwkm1QQ==}
-    dependencies:
-      type-fest: 4.8.3
-      vee-validate: 4.12.3(vue@3.3.13)
-      zod: 3.22.4
-    transitivePeerDependencies:
-      - vue
-    dev: false
 
   /@vercel/nft@0.24.3:
     resolution: {integrity: sha512-IyBdIxmFAeGZnEfMgt4QrGK7XX4lWazlQj34HEi9dw04/WeDBJ7r1yaOIO5tTf9pbfvwUFodj9b0H+NDGGoOMg==}
@@ -7740,11 +7724,6 @@ packages:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
 
-  /type-fest@4.8.3:
-    resolution: {integrity: sha512-//BaTm14Q/gHBn09xlnKNqfI8t6bmdzx2DXYfPBNofN0WUybCEUDcbCWcTa0oF09lzLjZgPphXAsvRiMK0V6Bw==}
-    engines: {node: '>=16'}
-    dev: false
-
   /type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
@@ -8056,16 +8035,6 @@ packages:
   /vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
-    dev: false
-
-  /vee-validate@4.12.3(vue@3.3.13):
-    resolution: {integrity: sha512-+ux21pFm2beGK21Q8LFDJdYqCu/7yd0HDIGolNvr7GjjlBTrK0JXm2y+h01jssyIlT1/+sSTNwAEqlSs0Nz0QA==}
-    peerDependencies:
-      vue: ^3.3.11
-    dependencies:
-      '@vue/devtools-api': 6.5.1
-      type-fest: 4.8.3
-      vue: 3.3.13(typescript@5.3.2)
     dev: false
 
   /vite-node@0.33.0:

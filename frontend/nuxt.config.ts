@@ -1,4 +1,6 @@
-import { env } from "./env";
+import envSchema from "./schemas/env";
+
+const env = envSchema.parse(process.env);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -6,11 +8,11 @@ export default defineNuxtConfig({
   modules: ["@hebilicious/authjs-nuxt", "@nuxt/ui"],
   runtimeConfig: {
     authJs: {
-      secret: env.AUTH_SECRET,
+      secret: env.NUXT_AUTH_JS_SECRET,
     },
     google: {
-      clientId: env.GOOGLE_OAUTH_CLIENT_ID,
-      clientSecret: env.GOOGLE_OAUTH_CLIENT_SECRET,
+      clientId: env.NUXT_GOOGLE_CLIENT_ID,
+      clientSecret: env.NUXT_GOOGLE_CLIENT_SECRET,
     },
     public: {
       authJs: {
@@ -25,6 +27,13 @@ export default defineNuxtConfig({
       maxOptions: env.NUXT_PUBLIC_MAX_OPTIONS,
       minDuration: env.NUXT_PUBLIC_MIN_DURATION,
       maxDuration: env.NUXT_PUBLIC_MAX_DURATION,
+    },
+    nanoId: {
+      alphabet: env.NUXT_NANO_ID_ALPHABET,
+      length: env.NUXT_NANO_ID_LENGTH,
+    },
+    api: {
+      baseUrl: env.NUXT_API_BASE_URL,
     },
   },
   alias: {
