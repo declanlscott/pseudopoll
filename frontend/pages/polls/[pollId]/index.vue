@@ -3,7 +3,8 @@ const { params } = useRoute();
 
 const pollId = params.pollId as string;
 
-const { data, error } = useFetch(`/api/polls/${pollId}`);
+const { getPoll } = usePollsStore();
+const poll = await getPoll(pollId);
 
 function vote(optionId: string) {
   $fetch(`/api/polls/${pollId}/${optionId}`, {
@@ -30,13 +31,13 @@ function closeNow() {
   <div>
     <h1>Vote</h1>
 
-    <div v-if="error">{{ error.message }}</div>
+    <!-- <div v-if="error">{{ error.message }}</div> -->
 
-    <div v-if="data">
-      <h1>{{ data.prompt }}</h1>
+    <div v-if="poll">
+      <h1>{{ poll.prompt }}</h1>
       <ul>
         <li
-          v-for="option in data.options"
+          v-for="option in poll.options"
           :key="option.optionId"
           @click="vote(option.optionId)"
         >

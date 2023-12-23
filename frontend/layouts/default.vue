@@ -3,14 +3,14 @@ const { signOut, status, session, signIn } = useAuth();
 </script>
 
 <template>
-  <UContainer>
+  <UContainer class="mb-32">
     <div class="flex w-full items-center justify-between pb-12 pt-3">
-      <h1 class="text-2xl">
+      <NuxtLink to="/" class="text-2xl">
         <span class="font-light text-gray-400">Pseudo</span>
         <span class="dark:text-primary-400 text-primary-500 font-bold"
           >Poll</span
         >
-      </h1>
+      </NuxtLink>
 
       <div v-if="status === 'authenticated'">
         <UPopover overlay class="h-8 w-8">

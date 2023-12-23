@@ -25,9 +25,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const config = useRuntimeConfig();
   const body = await readValidatedBody(
     event,
-    updatePollDurationBodySchema.safeParse,
+    updatePollDurationBodySchema(config.public).safeParse,
   );
   if (!body.success) {
     throw createError({

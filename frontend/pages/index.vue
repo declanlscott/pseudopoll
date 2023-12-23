@@ -7,7 +7,7 @@ import { createPollBodySchema } from "~/schemas/polls";
 import type { FormSubmitEvent } from "#ui/types";
 
 const config = useRuntimeConfig();
-const { status } = useAuth();
+const { status, signIn } = useAuth();
 
 const schema = createPollBodySchema(config.public);
 type Schema = z.infer<typeof schema>;
@@ -18,8 +18,54 @@ const state = ref<Schema>({
   duration: config.public.minDuration,
 });
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log("event", event);
+const isSubmitting = ref(false);
+const error = ref<Error | null>(null);
+
+const durations = [
+  { label: "1 minute", value: 60 },
+  { label: "5 minutes", value: 300 },
+  { label: "15 minutes", value: 900 },
+  { label: "30 minutes", value: 1800 },
+  { label: "1 hour", value: 3600 },
+  { label: "2 hours", value: 7200 },
+  { label: "6 hours", value: 21600 },
+  { label: "12 hours", value: 43200 },
+  { label: "1 day", value: 86400 },
+  { label: "2 days", value: 172800 },
+  { label: "3 days", value: 259200 },
+  { label: "1 week", value: 604800 },
+];
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  isSubmitting.value = true;
+  error.value = null;
+
+  try {
+    const poll = await $fetch("/api/polls", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event.data),
+    });
+
+    usePollsStore().addPoll(poll);
+    useRouter().push(`/polls/${poll.pollId}`);
+  } catch (err: any) {
+    if (err.message.includes("401")) {
+      error.value = {
+        name: "Session expired",
+        message: "Your session has expired. Please sign in again.",
+      };
+    } else {
+      error.value = {
+        name: "Unknown error",
+        message: "An unknown error occurred. Please try again later.",
+      };
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
@@ -39,6 +85,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
           placeholder="Pancakes or waffles?"
           size="xl"
           class="w-full"
+          :disabled="isSubmitting"
         ></UTextarea>
       </UFormGroup>
 
@@ -72,6 +119,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                   index === $config.public.maxOptions - 1 && 'pr-[54px]',
                 )
               "
+              :disabled="isSubmitting"
             >
               <div class="absolute inset-y-0 end-0 flex items-center">
                 <UTooltip
@@ -84,17 +132,28 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                   <UButton
                     icon="i-heroicons-plus"
                     size="lg"
-                    :class="cn('rounded-l-none', index > 1 && 'rounded-r-none')"
+                    :class="
+                      cn(
+                        'rounded-l-none',
+                        index > $config.public.minOptions - 1 &&
+                          'rounded-r-none',
+                      )
+                    "
+                    :disabled="isSubmitting"
                     @click="state.options.push('')"
                   ></UButton>
                 </UTooltip>
 
-                <UTooltip v-if="index > 1" :text="`Remove option ${index + 1}`">
+                <UTooltip
+                  v-if="index > $config.public.minOptions - 1"
+                  :text="`Remove option ${index + 1}`"
+                >
                   <UButton
                     color="gray"
                     icon="i-heroicons-minus"
                     size="lg"
                     class="rounded-l-none"
+                    :disabled="isSubmitting"
                     @click="state.options.splice(index, 1)"
                   ></UButton>
                 </UTooltip>
@@ -104,26 +163,49 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
         </li>
       </ul>
 
-      <UFormGroup name="duration" label="Duration">
-        <URange
-          id="duration"
-          v-model="state.duration"
-          :min="$config.public.minDuration"
-          :max="$config.public.maxDuration"
-          name="duration"
-        ></URange>
-      </UFormGroup>
+      <div class="flex items-end justify-between">
+        <UFormGroup name="duration" label="Duration">
+          <USelect
+            v-model="state.duration"
+            name="duration"
+            :options="durations"
+            :disabled="isSubmitting"
+            class="w-fit"
+          ></USelect>
+        </UFormGroup>
 
-      <div class="flex justify-end">
         <UButton
           color="primary"
           size="lg"
           icon="i-heroicons-pencil-square"
+          :loading="isSubmitting"
           type="submit"
         >
-          Create
+          {{ isSubmitting ? "Creating..." : "Create" }}
         </UButton>
       </div>
+
+      <UAlert
+        v-if="error"
+        :title="error.name"
+        :description="error.message"
+        color="red"
+        variant="outline"
+        :actions="
+          error.name === 'Session expired'
+            ? [
+                {
+                  variant: 'solid',
+                  color: 'gray',
+                  label: 'Sign in',
+                  icon: 'i-heroicons-arrow-right',
+                  trailing: true,
+                  click: signIn,
+                },
+              ]
+            : []
+        "
+      ></UAlert>
     </UForm>
   </div>
 </template>

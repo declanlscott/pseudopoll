@@ -11,7 +11,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const body = await readValidatedBody(event, createPollBodySchema.safeParse);
+  const config = useRuntimeConfig();
+  const body = await readValidatedBody(
+    event,
+    createPollBodySchema(config.public).safeParse,
+  );
   if (!body.success) {
     throw createError({
       statusCode: 400,

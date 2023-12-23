@@ -18,7 +18,7 @@ const nanoIdSchema = (propertyName: string) =>
     });
 
 const durationSchema = ({ minDuration, maxDuration }: PublicRuntimeConfig) =>
-  z
+  z.coerce
     .number()
     .int()
     .positive()
@@ -96,6 +96,7 @@ export const updatePollDurationRouterParamsSchema = z.object({
   pollId: nanoIdSchema("Poll ID"),
 });
 
-// export const updatePollDurationBodySchema = z.object({
-//   duration: z.union([z.literal(-1), durationSchema]),
-// });
+export const updatePollDurationBodySchema = (config: PublicRuntimeConfig) =>
+  z.object({
+    duration: z.union([z.literal(-1), durationSchema(config)]),
+  });
