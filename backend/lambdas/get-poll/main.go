@@ -80,6 +80,13 @@ func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatew
 	return res
 }
 
+func stripPrefix(s string, prefix string) string {
+	if len(s) > len(prefix) && s[0:len(prefix)] == prefix {
+		return s[len(prefix):]
+	}
+	return s
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	pollId := request.PathParameters["pollId"]
 
@@ -143,7 +150,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 
-		if ddbPoll.Gsi1PkUserId != currentUserId {
+		if stripPrefix(ddbPoll.Gsi1PkUserId, "user|") != currentUserId {
 			err := errors.New("user is not authorized to access this poll")
 			return logAndReturn(
 				events.APIGatewayProxyResponse{
@@ -193,7 +200,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}
 
 		options = append(options, Option{
-			OptionId:  ddbOption.PkOptionId,
+			OptionId:  stripPrefix(ddbOption.PkOptionId, "option|"),
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
@@ -201,8 +208,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    ddbPoll.PkPollId,
-		UserId:    ddbPoll.Gsi1PkUserId,
+		PollId:    stripPrefix(ddbPoll.PkPollId, "poll|"),
+		UserId:    stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
 		Prompt:    ddbPoll.Prompt,
 		Options:   options,
 		CreatedAt: ddbPoll.CreatedAt,
