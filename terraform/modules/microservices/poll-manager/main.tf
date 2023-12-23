@@ -121,7 +121,7 @@ module "create_poll_lambda" {
   archive_output_path = "${path.module}/../../../../backend/lambdas/create-poll/bin/create-poll.zip"
 
   environment_variables = {
-    SINGLE_TABLE_NAME = var.single_table_arn
+    SINGLE_TABLE_NAME = var.single_table_name
     NANOID_ALPHABET   = var.nanoid_alphabet
     NANOID_LENGTH     = "${var.nanoid_length}"
   }
