@@ -109,6 +109,14 @@ func logAndReturn(res events.APIGatewayProxyResponse, err error) events.APIGatew
 	return res
 }
 
+func stripPrefix(s string, prefix string) string {
+	if len(s) > len(prefix) && s[0:len(prefix)] == prefix {
+		return s[len(prefix):]
+	}
+
+	return s
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentTime := time.Now().UTC().Format(time.RFC3339)
 
@@ -238,7 +246,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 		options = append(options, Option{
-			OptionId:  ddbOption.PkOptionId,
+			OptionId:  stripPrefix(ddbOption.PkOptionId, "option|"),
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
@@ -267,8 +275,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    ddbPoll.PkPollId,
-		UserId:    ddbPoll.Gsi1PkUserId,
+		PollId:    stripPrefix(ddbPoll.PkPollId, "poll|"),
+		UserId:    stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
 		Prompt:    ddbPoll.Prompt,
 		Options:   options,
 		CreatedAt: ddbPoll.CreatedAt,
