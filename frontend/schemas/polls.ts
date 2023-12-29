@@ -2,19 +2,17 @@ import { z } from "zod";
 
 import type { PublicRuntimeConfig } from "nuxt/schema";
 
-const nanoIdLength = Number(process.env.NUXT_NANO_ID_LENGTH);
-const nanoIdAlphabet = process.env.NUXT_NANO_ID_ALPHABET;
-const nanoIdSchema = (propertyName: string) =>
+const nanoIdSchema = ({ nanoId }: PublicRuntimeConfig, propertyName: string) =>
   z
     .string()
-    .min(nanoIdLength, {
-      message: `${propertyName} should be ${nanoIdLength} characters long.`,
+    .min(nanoId.length, {
+      message: `${propertyName} should be ${nanoId.length} characters long.`,
     })
     .max(12, {
-      message: `${propertyName} should be ${nanoIdLength} characters long.`,
+      message: `${propertyName} should be ${nanoId.length} characters long.`,
     })
-    .regex(new RegExp(`^[${nanoIdAlphabet}]+$`), {
-      message: `${propertyName} should only contain characters from the alphabet: ${nanoIdAlphabet}.`,
+    .regex(new RegExp(`^[${nanoId.alphabet}]+$`), {
+      message: `${propertyName} should only contain characters from the alphabet: ${nanoId.alphabet}.`,
     });
 
 const durationSchema = ({ minDuration, maxDuration }: PublicRuntimeConfig) =>
@@ -75,26 +73,32 @@ export const createPollBodySchema = (config: PublicRuntimeConfig) => {
   });
 };
 
-export const getPollRouterParamsSchema = z.object({
-  pollId: nanoIdSchema("Poll ID"),
-});
+export const getPollRouterParamsSchema = (config: PublicRuntimeConfig) =>
+  z.object({
+    pollId: nanoIdSchema(config, "Poll ID"),
+  });
 
-export const voteRouterParamsSchema = z.object({
-  pollId: nanoIdSchema("Poll ID"),
-  optionId: nanoIdSchema("Option ID"),
-});
+export const voteRouterParamsSchema = (config: PublicRuntimeConfig) =>
+  z.object({
+    pollId: nanoIdSchema(config, "Poll ID"),
+    optionId: nanoIdSchema(config, "Option ID"),
+  });
 
-export const archivePollRouterParamsSchema = z.object({
-  pollId: nanoIdSchema("Poll ID"),
-});
+export const archivePollRouterParamsSchema = (config: PublicRuntimeConfig) =>
+  z.object({
+    pollId: nanoIdSchema(config, "Poll ID"),
+  });
 
 export const archivePollBodySchema = z.object({
   archived: z.boolean(),
 });
 
-export const updatePollDurationRouterParamsSchema = z.object({
-  pollId: nanoIdSchema("Poll ID"),
-});
+export const updatePollDurationRouterParamsSchema = (
+  config: PublicRuntimeConfig,
+) =>
+  z.object({
+    pollId: nanoIdSchema(config, "Poll ID"),
+  });
 
 export const updatePollDurationBodySchema = (config: PublicRuntimeConfig) =>
   z.object({

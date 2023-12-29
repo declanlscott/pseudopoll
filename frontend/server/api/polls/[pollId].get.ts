@@ -3,9 +3,10 @@ import { getServerAuthSession } from "~/server/auth";
 import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
   const routerParams = await getValidatedRouterParams(
     event,
-    getPollRouterParamsSchema.safeParse,
+    getPollRouterParamsSchema(config.public).safeParse,
   );
 
   if (!routerParams.success) {

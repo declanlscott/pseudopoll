@@ -6,10 +6,10 @@ export default z.object({
   NUXT_AUTH_JS_SECRET: z.string(),
   NUXT_GOOGLE_CLIENT_ID: z.string(),
   NUXT_GOOGLE_CLIENT_SECRET: z.string(),
-  NUXT_NANO_ID_ALPHABET: z.string(),
-  NUXT_NANO_ID_LENGTH: z.preprocess(Number, z.number().int().positive()),
 
   // Server and client
+  NUXT_PUBLIC_NANO_ID_ALPHABET: z.string(),
+  NUXT_PUBLIC_NANO_ID_LENGTH: z.preprocess(Number, z.number().int().positive()),
   NUXT_PUBLIC_PROMPT_MIN_LENGTH: z.preprocess(
     Number,
     z.number().int().positive(),

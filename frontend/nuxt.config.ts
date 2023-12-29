@@ -27,10 +27,10 @@ export default defineNuxtConfig({
       maxOptions: env.NUXT_PUBLIC_MAX_OPTIONS,
       minDuration: env.NUXT_PUBLIC_MIN_DURATION,
       maxDuration: env.NUXT_PUBLIC_MAX_DURATION,
-    },
-    nanoId: {
-      alphabet: env.NUXT_NANO_ID_ALPHABET,
-      length: env.NUXT_NANO_ID_LENGTH,
+      nanoId: {
+        alphabet: env.NUXT_PUBLIC_NANO_ID_ALPHABET,
+        length: env.NUXT_PUBLIC_NANO_ID_LENGTH,
+      },
     },
     api: {
       baseUrl: env.NUXT_API_BASE_URL,
