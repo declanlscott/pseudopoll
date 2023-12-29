@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="510f821b-a6a3-43f0-8f8a-06e8076d0217" name="Changes" comment="" />
+    <list default="true" id="510f821b-a6a3-43f0-8f8a-06e8076d0217" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../create-poll/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../create-poll/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../get-poll/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../get-poll/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote-count-publisher/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-count-publisher/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/nuxt.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/nuxt.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/pages/polls/[pollId]/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/pages/polls/[pollId]/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/schemas/env.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/schemas/env.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/schemas/polls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/schemas/polls.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].get.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].get.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,9 +26,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2ZjsroWTSbC4aRuC0I7Wi48Bmq1" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="1" id="Add" />
@@ -25,28 +37,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "main",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/declan/code/pseudopoll/backend/lambdas/poll-modification-publisher",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/declan/code/pseudopoll/backend/lambdas/poll-modification-publisher&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-gosdk-467a64f6063b-ee0e143f3e2b-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-233.11799.286" />
+        <option value="bundled-gosdk-266795519c66-911b893a1778-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-233.13135.104" />
       </set>
     </attachedChunks>
   </component>
