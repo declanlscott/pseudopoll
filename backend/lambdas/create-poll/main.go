@@ -48,6 +48,7 @@ type DdbOption struct {
 	SkOptionId   string `dynamodbav:"SK"`
 	Gsi1PkPollId string `dynamodbav:"GSI1PK"`
 	Gsi1SkPollId string `dynamodbav:"GSI1SK"`
+	Index        int    `dynamodbav:"Index"`
 	Text         string `dynamodbav:"Text"`
 	UpdatedAt    string `dynamodbav:"UpdatedAt"`
 	Votes        int    `dynamodbav:"Votes"`
@@ -213,7 +214,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	var ddbOption DdbOption
 	var options []Option
-	for _, text := range requestBody.Options {
+	for index, text := range requestBody.Options {
 		optionId, err := nanoid.Generate(nanoIdOptions.Alphabet, nanoIdOptions.Length)
 		if err != nil {
 			return logAndReturn(
@@ -230,6 +231,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			SkOptionId:   fmt.Sprintf("option|%s", optionId),
 			Gsi1PkPollId: fmt.Sprintf("poll|%s", pollId),
 			Gsi1SkPollId: fmt.Sprintf("poll|%s", pollId),
+			Index:        index,
 			Text:         text,
 			UpdatedAt:    currentTime,
 			Votes:        0,

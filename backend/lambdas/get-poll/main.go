@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -34,6 +35,7 @@ type DdbOption struct {
 	SkOptionId   string `dynamodbav:"SK"`
 	Gsi1PkPollId string `dynamodbav:"GSI1PK"`
 	Gsi1SkPollId string `dynamodbav:"GSI1SK"`
+	Index        int    `dynamodbav:"Index"`
 	Text         string `dynamodbav:"Text"`
 	UpdatedAt    string `dynamodbav:"UpdatedAt"`
 	Votes        int    `dynamodbav:"Votes"`
@@ -186,7 +188,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	var ddbOption DdbOption
-	var options []Option
+	var ddbOptions []DdbOption
 	for _, item := range optionsResult.Items {
 		err = attributevalue.UnmarshalMap(item, &ddbOption)
 		if err != nil {
@@ -199,6 +201,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 
+		ddbOptions = append(ddbOptions, ddbOption)
+	}
+
+	sort.Slice(ddbOptions, func(i, j int) bool {
+		return ddbOptions[i].Index < ddbOptions[j].Index
+	})
+
+	var options []Option
+	for _, ddbOption := range ddbOptions {
 		options = append(options, Option{
 			OptionId:  stripPrefix(ddbOption.PkOptionId, "option|"),
 			Text:      ddbOption.Text,
