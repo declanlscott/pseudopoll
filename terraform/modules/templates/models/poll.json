@@ -31,7 +31,7 @@
       "description": "The options to vote on",
       "items": {
         "type": "object",
-        "required": ["optionId", "pollId", "text", "updatedAt", "votes"],
+        "required": ["optionId", "pollId", "text", "updatedAt", "votes", "isMyVote"],
         "properties": {
           "optionId": {
             "type": "string",
@@ -57,6 +57,10 @@
             "type": "integer",
             "description": "The number of votes for this option",
             "minimum": 0
+          },
+          "isMyVote": {
+            "type": "boolean",
+            "description": "Whether the current user has voted for this option"
           }
         }
       },
