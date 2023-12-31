@@ -1,9 +1,9 @@
-module authorizer
+module api-authorizer
 
-go 1.21.3
+go 1.21
 
 require (
-	github.com/MicahParks/keyfunc/v2 v2.1.0
-	github.com/aws/aws-lambda-go v1.41.0
-	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
+	github.com/aws/aws-lambda-go v1.43.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 )
