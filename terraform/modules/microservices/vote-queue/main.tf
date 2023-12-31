@@ -49,6 +49,10 @@ resource "aws_api_gateway_method_response" "post_accepted" {
   resource_id = aws_api_gateway_resource.option.id
   http_method = aws_api_gateway_method.post.http_method
   status_code = "202"
+
+  response_models = {
+    "application/json" = var.vote_accepted_model_name
+  }
 }
 
 resource "aws_api_gateway_resource" "public_option" {
@@ -101,6 +105,10 @@ resource "aws_api_gateway_method_response" "public_post_accepted" {
   resource_id = aws_api_gateway_resource.public_option.id
   http_method = aws_api_gateway_method.public_post.http_method
   status_code = "202"
+
+  response_models = {
+    "application/json" = var.vote_accepted_model_name
+  }
 }
 
 module "api_queue_iam" {

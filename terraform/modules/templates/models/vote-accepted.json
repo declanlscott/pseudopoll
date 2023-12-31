@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Vote Accepted Schema",
+  "type": "object",
+  "required": ["requestId"],
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "requestId": {
+      "type": "string"
+    }
+  }
+}
