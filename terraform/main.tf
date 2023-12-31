@@ -82,8 +82,8 @@ module "lambda_logging" {
 
 module "api_authorizer" {
   source                    = "./modules/api-gateway/authorizer"
-  name                      = "pseudopoll-authorizer"
-  function_name             = "pseudopoll-authorizer"
+  name                      = "pseudopoll-api-authorizer"
+  function_name             = "pseudopoll-api-authorizer"
   rest_api_id               = module.rest_api.id
   archive_source_file       = "${path.module}/../backend/lambdas/api-authorizer/bin/bootstrap"
   archive_output_path       = "${path.module}/../backend/lambdas/api-authorizer/bin/api-authorizer.zip"
