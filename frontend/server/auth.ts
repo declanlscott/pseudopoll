@@ -44,6 +44,7 @@ export const authOptions: AuthConfig = {
       return params.token;
     },
   },
+  debug: process.env.NODE_ENV === "development",
 };
 
 export const getServerAuthSession = (event: H3Event<EventHandlerRequest>) =>
