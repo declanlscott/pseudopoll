@@ -82,6 +82,8 @@ func handler(ctx context.Context, event events.SQSEvent) {
 	var ddbPoll DdbPoll
 	var voterId string
 	for _, record := range event.Records {
+		log.Printf("Processing message: %s\n", record.Body)
+
 		if err := json.Unmarshal([]byte(record.Body), &messageBody); err != nil {
 			log.Printf("Error: %s\n", err)
 			continue
