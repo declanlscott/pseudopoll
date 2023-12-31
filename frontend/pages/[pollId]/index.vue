@@ -31,7 +31,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   const { pollId, optionId } = event.data;
 
   try {
-    if (poll.value?.options.some((option) => option.optionId === optionId)) {
+    if (poll.value?.options.some((option) => option.isMyVote)) {
       throw new Error("ALREADY_VOTED");
     }
 
