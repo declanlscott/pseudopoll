@@ -41,6 +41,13 @@ type DdbOption struct {
 	Votes        int    `dynamodbav:"Votes"`
 }
 
+type DdbMyVote struct {
+	PkVoterId string `dynamodbav:"PK"`
+	SkPollId  string `dynamodbav:"SK"`
+	OptionId  string `dynamodbav:"OptionId"`
+	VoteId    string `dynamodbav:"VoteId"`
+}
+
 type Poll struct {
 	PollId    string   `json:"pollId"`
 	UserId    string   `json:"userId"`
@@ -56,6 +63,7 @@ type Option struct {
 	Text      string `json:"text"`
 	UpdatedAt string `json:"updatedAt"`
 	Votes     int    `json:"votes"`
+	IsMyVote  bool   `json:"isMyVote"`
 }
 
 type Error struct {
@@ -125,10 +133,19 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			err,
 		), nil
 	}
+	if pollResult.Item == nil {
+		err := errors.New("poll not found")
+		return logAndReturn(
+			events.APIGatewayProxyResponse{
+				StatusCode: http.StatusNotFound,
+				Body:       formatError("Not found", err),
+			},
+			err,
+		), nil
+	}
 
 	var ddbPoll DdbPoll
-	err = attributevalue.UnmarshalMap(pollResult.Item, &ddbPoll)
-	if err != nil {
+	if err = attributevalue.UnmarshalMap(pollResult.Item, &ddbPoll); err != nil {
 		return logAndReturn(
 			events.APIGatewayProxyResponse{
 				StatusCode: http.StatusInternalServerError,
@@ -139,6 +156,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	currentUserId := request.RequestContext.Authorizer["sub"]
+
 	if ddbPoll.Archived {
 		// NOTE: If this lambda is invoked by the `/public/polls/{pollId}` endpoint, the user will not be authenticated.
 		if currentUserId == nil {
@@ -161,6 +179,44 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				},
 				err,
 			), nil
+		}
+	}
+
+	userHasVoted := false
+	var myVote DdbMyVote
+	if currentUserId != nil {
+		myVoteResult, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{
+			TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
+			Key: map[string]types.AttributeValue{
+				"PK": &types.AttributeValueMemberS{
+					Value: fmt.Sprintf("voter|%s", currentUserId),
+				},
+				"SK": &types.AttributeValueMemberS{
+					Value: fmt.Sprintf("poll|%s", pollId),
+				},
+			},
+		})
+		if err != nil {
+			return logAndReturn(
+				events.APIGatewayProxyResponse{
+					StatusCode: http.StatusInternalServerError,
+					Body:       formatError("Internal server error", err),
+				},
+				err,
+			), nil
+		}
+		if myVoteResult.Item != nil {
+			userHasVoted = true
+
+			if err = attributevalue.UnmarshalMap(myVoteResult.Item, &myVote); err != nil {
+				return logAndReturn(
+					events.APIGatewayProxyResponse{
+						StatusCode: http.StatusInternalServerError,
+						Body:       formatError("Internal server error", err),
+					},
+					err,
+				), nil
+			}
 		}
 	}
 
@@ -210,12 +266,19 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	var options []Option
 	for _, ddbOption := range ddbOptions {
-		options = append(options, Option{
+		option := Option{
 			OptionId:  stripPrefix(ddbOption.PkOptionId, "option|"),
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
-		})
+			IsMyVote:  false,
+		}
+
+		if userHasVoted && stripPrefix(ddbOption.PkOptionId, "option|") == myVote.OptionId {
+			option.IsMyVote = true
+		}
+
+		options = append(options, option)
 	}
 
 	poll, err := json.Marshal(Poll{
