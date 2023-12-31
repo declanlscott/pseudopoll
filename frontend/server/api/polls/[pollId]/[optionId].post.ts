@@ -3,10 +3,13 @@ import { getServerAuthSession } from "~/server/auth";
 import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
+
   const routerParams = await getValidatedRouterParams(
     event,
-    voteRouterParamsSchema.safeParse,
+    voteRouterParamsSchema(config.public).safeParse,
   );
+
   if (!routerParams.success) {
     throw createError({
       statusCode: 400,

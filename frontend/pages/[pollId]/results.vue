@@ -1,35 +1,40 @@
 <script lang="ts" setup>
 import { formatDistance, formatDuration, intervalToDuration } from "date-fns";
 
-// eslint-disable-next-line import/order
-import { voteRouterParamsSchema } from "~/schemas/polls";
-
-import type { FormSubmitEvent } from "#ui/types";
-import type { z } from "zod";
-
-const config = useRuntimeConfig();
-
 const { params } = useRoute();
 
 const pollId = params.pollId as string;
 
 const { getPoll } = usePollsStore();
-const poll = await getPoll(pollId);
+const poll = ref(await getPoll(pollId));
 
-const schema = voteRouterParamsSchema(config.public);
-type Schema = z.infer<typeof schema>;
+const totalVotes = computed(() => {
+  if (!poll.value) {
+    return 0;
+  }
 
-const state = ref<Partial<Schema>>({ pollId });
+  return poll.value.options.reduce((total, option) => {
+    return total + option.votes;
+  }, 0);
+});
 
-const isSubmitting = ref(false);
+const lastActivity = computed(() => {
+  if (!poll.value) {
+    return "";
+  }
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-  isSubmitting.value = true;
+  const lastUpdatedAt = poll.value.options.reduce((lastUpdatedAt, option) => {
+    if (option.updatedAt > lastUpdatedAt) {
+      return option.updatedAt;
+    }
 
-  // TODO: Send vote to server
-  console.log("data", event.data);
-  isSubmitting.value = false;
-}
+    return lastUpdatedAt;
+  }, poll.value.createdAt);
+
+  return `Last activity ${formatDistance(new Date(lastUpdatedAt), new Date(), {
+    addSuffix: true,
+  })}`;
+});
 
 let intervalId: NodeJS.Timeout;
 const timeLeft = ref(0);
@@ -40,14 +45,14 @@ onMounted(() => {
 });
 
 function calculateTimeLeft() {
-  if (!poll) {
+  if (!poll.value) {
     timeLeft.value = 0;
     return;
   }
 
   const now = Date.now();
-  const createdAt = new Date(poll.createdAt).getTime();
-  const expiresAt = createdAt + poll.duration * 1000;
+  const createdAt = new Date(poll.value.createdAt).getTime();
+  const expiresAt = createdAt + poll.value.duration * 1000;
 
   timeLeft.value = Math.floor((expiresAt - now) / 1000);
 }
@@ -59,13 +64,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex justify-center">
-    <UForm
-      v-if="poll"
-      :state="state"
-      :schema="schema"
-      class="flex w-2/3 flex-col gap-6"
-      @submit="onSubmit"
-    >
+    <div v-if="poll" class="flex w-2/3 flex-col gap-6">
       <UMeter :value="timeLeft" :max="poll.duration">
         <template #indicator>
           <span
@@ -79,6 +78,7 @@ onBeforeUnmount(() => {
             }}
             left
           </span>
+
           <span
             v-else-if="timeLeft < 0"
             class="text-right text-sm text-gray-500 dark:text-gray-400"
@@ -92,6 +92,7 @@ onBeforeUnmount(() => {
               )
             }}
           </span>
+
           <span
             v-else
             class="text-right text-sm text-gray-500 dark:text-gray-400"
@@ -103,36 +104,35 @@ onBeforeUnmount(() => {
 
       <h1 class="text-3xl font-bold">{{ poll.prompt }}</h1>
 
-      <div class="flex flex-col">
-        <URadio
-          v-for="option of poll.options"
-          :key="option.optionId"
-          v-model="state.optionId"
-          :value="option.optionId"
-          :label="option.text"
-          :ui="{
-            base: 'h-5 w-5',
-            container: 'mt-3',
-            inner: 'grow ms-0',
-            label: cn(
-              'text-xl text-gray-500 dark:text-gray-400 py-2 ps-3',
-              state.optionId === option.optionId &&
-                'text-black dark:text-white',
-            ),
-          }"
-        ></URadio>
-      </div>
+      <ul class="flex flex-col gap-3">
+        <li v-for="option in poll.options" :key="option.optionId">
+          <OptionResult :option="option" :total-votes="totalVotes" />
+        </li>
+      </ul>
 
-      <div class="flex flex-row-reverse">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex gap-1 text-sm text-gray-500 dark:text-gray-400">
+          <span>
+            {{ `${totalVotes} vote${totalVotes === 1 ? "" : "s"}` }}
+          </span>
+
+          <span>•</span>
+
+          <span>
+            {{ lastActivity }}
+          </span>
+        </div>
+
         <UButton
-          color="primary"
+          color="gray"
           size="lg"
           icon="i-heroicons-document-check"
-          type="submit"
+          type="button"
+          :to="`/${pollId}`"
         >
-          {{ isSubmitting ? "Voting..." : "Vote" }}
+          Vote
         </UButton>
       </div>
-    </UForm>
+    </div>
   </div>
 </template>

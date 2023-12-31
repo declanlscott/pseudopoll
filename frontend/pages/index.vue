@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { z } from "zod";
-
+// eslint-disable-next-line import/order
 import { createPollBodySchema } from "~/schemas/polls";
 
-// eslint-disable-next-line import/order
 import type { FormSubmitEvent } from "#ui/types";
+import type { z } from "zod";
 
 const config = useRuntimeConfig();
 const { status, signIn } = useAuth();
@@ -50,7 +49,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     });
 
     usePollsStore().addPoll(poll);
-    useRouter().push(`/polls/${poll.pollId}`);
+    useRouter().push(`/${poll.pollId}`);
   } catch (err: any) {
     if (err.message.includes("401")) {
       error.value = {

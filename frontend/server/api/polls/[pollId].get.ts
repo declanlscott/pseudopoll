@@ -4,6 +4,7 @@ import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
+
   const routerParams = await getValidatedRouterParams(
     event,
     getPollRouterParamsSchema(config.public).safeParse,
@@ -16,14 +17,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const { pollId } = routerParams.data;
-
   const session = await getServerAuthSession(event);
   const result = await fetch.GET(
     session ? "/polls/{pollId}" : "/public/polls/{pollId}",
     {
       params: {
-        path: { pollId },
+        path: routerParams.data,
       },
       headers: session
         ? { Authorization: `Bearer ${session.user.idToken}` }
