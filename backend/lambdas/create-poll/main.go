@@ -69,6 +69,7 @@ type Option struct {
 	Text      string `json:"text"`
 	UpdatedAt string `json:"updatedAt"`
 	Votes     int    `json:"votes"`
+	IsMyVote  bool   `json:"isMyVote"`
 }
 
 type Error struct {
@@ -252,6 +253,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			Text:      ddbOption.Text,
 			UpdatedAt: ddbOption.UpdatedAt,
 			Votes:     ddbOption.Votes,
+			IsMyVote:  false,
 		})
 
 		transactItem = types.TransactWriteItem{
