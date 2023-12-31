@@ -17,6 +17,7 @@ export interface paths {
         /** @description 202 response */
         202: {
           content: {
+            "application/json": components["schemas"]["VoteAccepted"];
           };
         };
       };
@@ -196,6 +197,7 @@ export interface paths {
         /** @description 202 response */
         202: {
           content: {
+            "application/json": components["schemas"]["VoteAccepted"];
           };
         };
       };
@@ -207,6 +209,11 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    /** Vote Accepted Schema */
+    VoteAccepted: {
+      message?: string;
+      requestId: string;
+    };
     /** Archive Poll Schema */
     ArchivePoll: {
       archived: boolean;
@@ -243,6 +250,8 @@ export interface components {
           updatedAt: string;
           /** @description The number of votes for this option */
           votes: number;
+          /** @description Whether the current user has voted for this option */
+          isMyVote: boolean;
         }[];
       /** @description The time the poll was created */
       createdAt: string;
