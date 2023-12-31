@@ -18,6 +18,7 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
     "@nuxt/devtools": "^1.0.6",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@nuxtjs/eslint-module": "^4.1.0",
     "@typescript-eslint/parser": "^6.16.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
