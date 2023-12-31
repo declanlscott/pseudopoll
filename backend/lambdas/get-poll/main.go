@@ -35,7 +35,7 @@ type DdbOption struct {
 	SkOptionId   string `dynamodbav:"SK"`
 	Gsi1PkPollId string `dynamodbav:"GSI1PK"`
 	Gsi1SkPollId string `dynamodbav:"GSI1SK"`
-	Index        int    `dynamodbav:"Index"`
+	ArrayIndex   int    `dynamodbav:"ArrayIndex"`
 	Text         string `dynamodbav:"Text"`
 	UpdatedAt    string `dynamodbav:"UpdatedAt"`
 	Votes        int    `dynamodbav:"Votes"`
@@ -261,7 +261,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	sort.Slice(ddbOptions, func(i, j int) bool {
-		return ddbOptions[i].Index < ddbOptions[j].Index
+		return ddbOptions[i].ArrayIndex < ddbOptions[j].ArrayIndex
 	})
 
 	var options []Option
