@@ -19,13 +19,15 @@ const percentage = computed(() => {
   <div
     class="relative flex justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-700"
   >
-    <p class="text-xl">{{ option.text }}</p>
+    <p :class="cn('text-xl', option.isMyVote && 'font-bold')">
+      {{ option.text }}
+    </p>
 
     <span
       :class="
         cn(
           'mt-1 h-fit text-sm text-gray-500 dark:text-gray-400',
-          option.isMyVote && 'text-black dark:text-white',
+          option.isMyVote && 'font-bold text-black dark:text-white',
         )
       "
     >
