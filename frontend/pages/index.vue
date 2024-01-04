@@ -6,7 +6,7 @@ import type { FormSubmitEvent } from "#ui/types";
 import type { z } from "zod";
 
 const config = useRuntimeConfig();
-const { status, signIn } = useAuth();
+const { status } = useAuth();
 
 const schema = createPollBodySchema(config.public);
 type Schema = z.infer<typeof schema>;
@@ -17,54 +17,10 @@ const state = ref<Schema>({
   duration: config.public.minDuration,
 });
 
-const isSubmitting = ref(false);
-const error = ref<Error | null>(null);
-
-const durations = [
-  { label: "1 minute", value: 60 },
-  { label: "5 minutes", value: 300 },
-  { label: "15 minutes", value: 900 },
-  { label: "30 minutes", value: 1800 },
-  { label: "1 hour", value: 3600 },
-  { label: "2 hours", value: 7200 },
-  { label: "6 hours", value: 21600 },
-  { label: "12 hours", value: 43200 },
-  { label: "1 day", value: 86400 },
-  { label: "2 days", value: 172800 },
-  { label: "3 days", value: 259200 },
-  { label: "1 week", value: 604800 },
-];
+const { durations, create, isSubmitting, error } = useCreate();
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  isSubmitting.value = true;
-  error.value = null;
-
-  try {
-    const poll = await $fetch("/api/polls", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(event.data),
-    });
-
-    usePollsStore().addPoll(poll);
-    useRouter().push(`/${poll.pollId}`);
-  } catch (err: any) {
-    if (err.message.includes("401")) {
-      error.value = {
-        name: "Session expired",
-        message: "Your session has expired. Please sign in again.",
-      };
-    } else {
-      error.value = {
-        name: "Unknown error",
-        message: "An unknown error occurred. Please try again later.",
-      };
-    }
-  } finally {
-    isSubmitting.value = false;
-  }
+  await create({ poll: event.data });
 }
 </script>
 
@@ -186,24 +142,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
       <UAlert
         v-if="error"
-        :title="error.name"
+        title="Error"
         :description="error.message"
         color="red"
         variant="outline"
-        :actions="
-          error.name === 'Session expired'
-            ? [
-                {
-                  variant: 'solid',
-                  color: 'gray',
-                  label: 'Sign in',
-                  icon: 'i-heroicons-arrow-right',
-                  trailing: true,
-                  click: signIn,
-                },
-              ]
-            : []
-        "
       ></UAlert>
     </UForm>
   </div>

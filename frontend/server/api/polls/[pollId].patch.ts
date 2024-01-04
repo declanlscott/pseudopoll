@@ -14,9 +14,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const config = useRuntimeConfig();
+
   const routerParams = await getValidatedRouterParams(
     event,
-    updatePollDurationRouterParamsSchema.safeParse,
+    updatePollDurationRouterParamsSchema(config.public).safeParse,
   );
   if (!routerParams.success) {
     throw createError({
@@ -25,7 +27,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const config = useRuntimeConfig();
   const body = await readValidatedBody(
     event,
     updatePollDurationBodySchema(config.public).safeParse,

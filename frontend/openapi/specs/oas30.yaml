@@ -1,7 +1,7 @@
 openapi: "3.0.1"
 info:
   title: "pseudopoll-rest-api"
-  version: "2023-12-30T08:23:11Z"
+  version: "2024-01-03T18:41:13Z"
 servers:
 - url: "https://api.pseudopoll.com"
 paths:
@@ -28,6 +28,7 @@ paths:
       security:
       - pseudopoll-api-authorizer: []
       x-amazon-apigateway-integration:
+        type: "aws"
         credentials: "arn:aws:iam::981543223421:role/pseudopoll-api-gateway-role"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:sqs:path/pseudopoll-vote-queue"
@@ -51,7 +52,6 @@ paths:
             , }\", \"}\")\n"
         passthroughBehavior: "never"
         timeoutInMillis: 29000
-        type: "aws"
   /polls/{pollId}:
     get:
       parameters:
@@ -82,11 +82,11 @@ paths:
       security:
       - pseudopoll-api-authorizer: []
       x-amazon-apigateway-integration:
+        type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-get-poll/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
-        type: "aws_proxy"
     delete:
       parameters:
       - name: "pollId"
@@ -120,11 +120,11 @@ paths:
       - pseudopoll-api-authorizer: []
       x-amazon-apigateway-request-validator: "archive-poll-validator"
       x-amazon-apigateway-integration:
+        type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-archive-poll/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
-        type: "aws_proxy"
     patch:
       parameters:
       - name: "pollId"
@@ -167,11 +167,11 @@ paths:
       - pseudopoll-api-authorizer: []
       x-amazon-apigateway-request-validator: "update-poll-duration-validator"
       x-amazon-apigateway-integration:
+        type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-update-poll-duration/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
-        type: "aws_proxy"
   /polls:
     post:
       requestBody:
@@ -203,11 +203,11 @@ paths:
       - pseudopoll-api-authorizer: []
       x-amazon-apigateway-request-validator: "create-poll-validator"
       x-amazon-apigateway-integration:
+        type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-create-poll/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
-        type: "aws_proxy"
   /public/polls/{pollId}:
     get:
       parameters:
@@ -242,11 +242,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       x-amazon-apigateway-integration:
+        type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-get-poll/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
-        type: "aws_proxy"
   /public/polls/{pollId}/{optionId}:
     post:
       parameters:
@@ -268,6 +268,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/VoteAccepted"
       x-amazon-apigateway-integration:
+        type: "aws"
         credentials: "arn:aws:iam::981543223421:role/pseudopoll-api-gateway-role"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:sqs:path/pseudopoll-vote-queue"
@@ -291,7 +292,6 @@ paths:
             , }\", \"}\")\n"
         passthroughBehavior: "when_no_templates"
         timeoutInMillis: 29000
-        type: "aws"
 components:
   schemas:
     VoteAccepted:
@@ -307,10 +307,10 @@ components:
     ArchivePoll:
       title: "Archive Poll Schema"
       required:
-      - "archived"
+      - "isArchived"
       type: "object"
       properties:
-        archived:
+        isArchived:
           type: "boolean"
     CreatePoll:
       title: "Create Poll Schema"
@@ -355,9 +355,9 @@ components:
     Poll:
       title: "Poll Schema"
       required:
-      - "archived"
       - "createdAt"
       - "duration"
+      - "isArchived"
       - "options"
       - "pollId"
       - "prompt"
@@ -422,7 +422,7 @@ components:
           minimum: 60
           type: "integer"
           description: "The duration of the poll in seconds"
-        archived:
+        isArchived:
           type: "boolean"
           description: "Whether the poll is archived"
     UpdatePollDuration:
@@ -441,10 +441,10 @@ components:
       in: "header"
       x-amazon-apigateway-authtype: "custom"
       x-amazon-apigateway-authorizer:
+        type: "token"
         authorizerUri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-api-authorizer/invocations"
         authorizerCredentials: "arn:aws:iam::981543223421:role/api_gateway_authorizer_invocation_role"
         authorizerResultTtlInSeconds: 0
-        type: "token"
 x-amazon-apigateway-gateway-responses:
   DEFAULT_5XX:
     responseParameters:

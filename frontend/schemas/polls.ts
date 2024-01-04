@@ -90,7 +90,7 @@ export const archivePollRouterParamsSchema = (config: PublicRuntimeConfig) =>
   });
 
 export const archivePollBodySchema = z.object({
-  archived: z.boolean(),
+  isArchived: z.boolean(),
 });
 
 export const updatePollDurationRouterParamsSchema = (

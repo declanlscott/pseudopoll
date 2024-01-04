@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { formatDistance, formatDuration, intervalToDuration } from "date-fns";
 
+const { session } = useAuth();
+
 const { params } = useRoute();
-
 const pollId = params.pollId as string;
-
-const { getPoll } = usePollsStore();
-const poll = ref(await getPoll(pollId));
+const { data: poll } = await usePoll({ pollId });
 
 const totalVotes = computed(() => {
   if (!poll.value) {
@@ -60,6 +59,17 @@ function calculateTimeLeft() {
 onBeforeUnmount(() => {
   clearInterval(intervalId);
 });
+
+const {
+  archive,
+  isSubmitting: isArchiving,
+  error: archiveError,
+} = useArchive({ pollId });
+const {
+  closeNow,
+  isSubmitting: isClosing,
+  error: durationError,
+} = useDuration({ pollId });
 </script>
 
 <template>
@@ -102,7 +112,36 @@ onBeforeUnmount(() => {
         </template>
       </UMeter>
 
-      <h1 class="text-3xl font-bold">{{ poll.prompt }}</h1>
+      <div class="flex justify-between gap-6">
+        <h1 class="text-3xl font-bold">{{ poll.prompt }}</h1>
+
+        <div
+          v-if="session && session.user.id === poll.userId"
+          class="flex gap-2"
+        >
+          <UTooltip v-if="timeLeft > 0" text="Close now">
+            <UButton
+              icon="i-heroicons-clock"
+              color="gray"
+              :loading="isClosing"
+              @click="() => closeNow()"
+            ></UButton>
+          </UTooltip>
+
+          <UTooltip :text="poll.isArchived ? 'Unarchive' : 'Archive'">
+            <UButton
+              :icon="
+                poll.isArchived
+                  ? 'i-heroicons-arrow-up-circle'
+                  : 'i-heroicons-archive-box'
+              "
+              color="gray"
+              :loading="isArchiving"
+              @click="() => archive({ isArchived: !poll?.isArchived })"
+            ></UButton>
+          </UTooltip>
+        </div>
+      </div>
 
       <ul class="flex flex-col gap-3">
         <li v-for="option in poll.options" :key="option.optionId">
@@ -124,6 +163,7 @@ onBeforeUnmount(() => {
         </div>
 
         <UButton
+          v-if="timeLeft > 0"
           color="gray"
           size="lg"
           icon="i-heroicons-document-check"
@@ -133,6 +173,22 @@ onBeforeUnmount(() => {
           Vote
         </UButton>
       </div>
+
+      <UAlert
+        v-if="archiveError"
+        title="Archive Error"
+        :description="archiveError.message"
+        color="red"
+        variant="outline"
+      ></UAlert>
+
+      <UAlert
+        v-if="durationError"
+        title="Duration Error"
+        :description="durationError.message"
+        color="red"
+        variant="outline"
+      ></UAlert>
     </div>
   </div>
 </template>

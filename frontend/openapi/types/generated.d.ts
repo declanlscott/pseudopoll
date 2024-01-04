@@ -216,7 +216,7 @@ export interface components {
     };
     /** Archive Poll Schema */
     ArchivePoll: {
-      archived: boolean;
+      isArchived: boolean;
     };
     /** Create Poll Schema */
     CreatePoll: {
@@ -258,7 +258,7 @@ export interface components {
       /** @description The duration of the poll in seconds */
       duration: number;
       /** @description Whether the poll is archived */
-      archived: boolean;
+      isArchived: boolean;
     };
     /** Update Poll Duration Schema */
     UpdatePollDuration: {

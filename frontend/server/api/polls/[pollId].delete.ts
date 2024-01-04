@@ -14,9 +14,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const config = useRuntimeConfig();
+
   const routerParams = await getValidatedRouterParams(
     event,
-    archivePollRouterParamsSchema.safeParse,
+    archivePollRouterParamsSchema(config.public).safeParse,
   );
   if (!routerParams.success) {
     throw createError({

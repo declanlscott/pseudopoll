@@ -32,7 +32,10 @@ export default defineEventHandler(async (event) => {
     },
   );
   if (result.error) {
-    throw createError({});
+    throw createError({
+      statusCode: 500,
+      message: "An unknown error occurred while voting on the poll.",
+    });
   }
 
   return result.data;

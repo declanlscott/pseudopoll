@@ -7,63 +7,20 @@ import { voteRouterParamsSchema } from "~/schemas/polls";
 import type { FormSubmitEvent } from "#ui/types";
 import type { z } from "zod";
 
-const config = useRuntimeConfig();
-
 const { params } = useRoute();
-
 const pollId = params.pollId as string;
+const { data: poll } = await usePoll({ pollId });
 
-const { getPoll } = usePollsStore();
-const poll = ref(await getPoll(pollId));
+const { vote, isSubmitting, error: voteError } = useVote({ pollId });
 
+const config = useRuntimeConfig();
 const schema = voteRouterParamsSchema(config.public);
 type Schema = z.infer<typeof schema>;
 
 const state = ref<Partial<Schema>>({ pollId });
 
-const isSubmitting = ref(false);
-const error = ref<Error | null>(null);
-
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  isSubmitting.value = true;
-  error.value = null;
-
-  const { pollId, optionId } = event.data;
-
-  try {
-    if (poll.value?.options.some((option) => option.isMyVote)) {
-      throw new Error("ALREADY_VOTED");
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { requestId } = await $fetch(`/api/polls/${pollId}/${optionId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // TODO: Subscribe to the requestId channel and wait for the result.
-
-    usePollsStore().vote(pollId, optionId);
-    useRouter().push(`/${pollId}/results`);
-  } catch (err: any) {
-    if (err.message === "ALREADY_VOTED") {
-      error.value = {
-        name: "Invalid vote",
-        message: "You have already voted on this poll.",
-      };
-    } else {
-      error.value = {
-        name: "Unknown error",
-        message: "An unknown error occurred. Please try again later.",
-      };
-    }
-  } finally {
-    isSubmitting.value = false;
-  }
-
-  isSubmitting.value = false;
+  await vote({ optionId: event.data.optionId });
 }
 
 let intervalId: NodeJS.Timeout;
@@ -157,11 +114,13 @@ onBeforeUnmount(() => {
                 'text-black dark:text-white',
             ),
           }"
+          :disabled="timeLeft <= 0"
         ></URadio>
       </div>
 
       <div class="flex flex-row-reverse gap-2">
         <UButton
+          v-if="timeLeft > 0"
           color="primary"
           size="lg"
           icon="i-heroicons-document-check"
@@ -187,9 +146,9 @@ onBeforeUnmount(() => {
       </div>
 
       <UAlert
-        v-if="error"
-        :title="error.name"
-        :description="error.message"
+        v-if="voteError"
+        title="Vote Error"
+        :description="voteError.message"
         color="red"
         variant="outline"
       ></UAlert>
