@@ -9,7 +9,7 @@
     "options",
     "createdAt",
     "duration",
-    "archived"
+    "isArchived"
   ],
   "properties": {
     "pollId": {
@@ -78,7 +78,7 @@
       "minimum": 60,
       "maximum": 604800
     },
-    "archived": {
+    "isArchived": {
       "type": "boolean",
       "description": "Whether the poll is archived"
     }
