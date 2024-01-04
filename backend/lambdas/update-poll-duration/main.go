@@ -149,10 +149,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		), nil
 	}
 
-	var duration int
 	requestTime := time.UnixMilli(request.RequestContext.RequestTimeEpoch)
-	newExpirationTime := createdAt.Add(time.Duration(duration) * time.Second)
+	var newExpirationTime time.Time
+	var duration int
 	if requestBody.Duration != -1 {
+		newExpirationTime = createdAt.Add(time.Duration(requestBody.Duration) * time.Second)
+
 		if newExpirationTime.Before(requestTime) {
 			err = errors.New(
 				"duration must be greater than the time since the poll was created, or -1 to close now",
@@ -165,10 +167,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				err,
 			), nil
 		}
-
-		duration = requestBody.Duration
 	} else {
-		if newExpirationTime.Before(requestTime) {
+		if createdAt.Add(time.Duration(ddbPoll.Duration) * time.Second).Before(requestTime) {
 			err = errors.New("poll has already expired")
 			return logAndReturn(
 				events.APIGatewayProxyResponse{
@@ -179,8 +179,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			), nil
 		}
 
-		duration = int(requestTime.Sub(createdAt).Seconds())
+		newExpirationTime = requestTime
+
 	}
+	duration = int(newExpirationTime.Sub(createdAt).Seconds())
 
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(os.Getenv("SINGLE_TABLE_NAME")),
@@ -188,11 +190,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			"PK": &types.AttributeValueMemberS{
 				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
 			},
+			"SK": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("poll|%s", request.PathParameters["pollId"]),
+			},
 		},
-		ConditionExpression: aws.String("#user = :user"),
+		ConditionExpression: aws.String("#userPk = :user AND #userSk = :user"),
 		UpdateExpression:    aws.String("SET #duration = :duration"),
 		ExpressionAttributeNames: map[string]string{
-			"#user":     "GSI1PK",
+			"#userPk":   "GSI1PK",
+			"#userSk":   "GSI1SK",
 			"#duration": "Duration",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
