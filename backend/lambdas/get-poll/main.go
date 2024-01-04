@@ -27,7 +27,7 @@ type DdbPoll struct {
 	Prompt       string `dynamodbav:"Prompt"`
 	CreatedAt    string `dynamodbav:"CreatedAt"`
 	Duration     int    `dynamodbav:"Duration"`
-	Archived     bool   `dynamodbav:"Archived"`
+	IsArchived   bool   `dynamodbav:"isArchived"`
 }
 
 type DdbOption struct {
@@ -49,13 +49,13 @@ type DdbMyVote struct {
 }
 
 type Poll struct {
-	PollId    string   `json:"pollId"`
-	UserId    string   `json:"userId"`
-	Prompt    string   `json:"prompt"`
-	Options   []Option `json:"options"`
-	CreatedAt string   `json:"createdAt"`
-	Duration  int      `json:"duration"`
-	Archived  bool     `json:"archived"`
+	PollId     string   `json:"pollId"`
+	UserId     string   `json:"userId"`
+	Prompt     string   `json:"prompt"`
+	Options    []Option `json:"options"`
+	CreatedAt  string   `json:"createdAt"`
+	Duration   int      `json:"duration"`
+	IsArchived bool     `json:"isArchived"`
 }
 
 type Option struct {
@@ -157,7 +157,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	currentUserId := request.RequestContext.Authorizer["sub"]
 
-	if ddbPoll.Archived {
+	if ddbPoll.IsArchived {
 		// NOTE: If this lambda is invoked by the `/public/polls/{pollId}` endpoint, the user will not be authenticated.
 		if currentUserId == nil {
 			err := errors.New("user is not authenticated")
@@ -282,13 +282,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    stripPrefix(ddbPoll.PkPollId, "poll|"),
-		UserId:    stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
-		Prompt:    ddbPoll.Prompt,
-		Options:   options,
-		CreatedAt: ddbPoll.CreatedAt,
-		Duration:  ddbPoll.Duration,
-		Archived:  ddbPoll.Archived,
+		PollId:     stripPrefix(ddbPoll.PkPollId, "poll|"),
+		UserId:     stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
+		Prompt:     ddbPoll.Prompt,
+		Options:    options,
+		CreatedAt:  ddbPoll.CreatedAt,
+		Duration:   ddbPoll.Duration,
+		IsArchived: ddbPoll.IsArchived,
 	})
 	if err != nil {
 		return logAndReturn(

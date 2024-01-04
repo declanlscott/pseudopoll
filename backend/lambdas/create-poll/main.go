@@ -40,7 +40,7 @@ type DdbPoll struct {
 	Prompt       string `dynamodbav:"Prompt"`
 	CreatedAt    string `dynamodbav:"CreatedAt"`
 	Duration     int    `dynamodbav:"Duration"`
-	Archived     bool   `dynamodbav:"Archived"`
+	IsArchived   bool   `dynamodbav:"IsArchived"`
 }
 
 type DdbOption struct {
@@ -55,13 +55,13 @@ type DdbOption struct {
 }
 
 type Poll struct {
-	PollId    string   `json:"pollId"`
-	UserId    string   `json:"userId"`
-	Prompt    string   `json:"prompt"`
-	Options   []Option `json:"options"`
-	CreatedAt string   `json:"createdAt"`
-	Duration  int      `json:"duration"`
-	Archived  bool     `json:"archived"`
+	PollId     string   `json:"pollId"`
+	UserId     string   `json:"userId"`
+	Prompt     string   `json:"prompt"`
+	Options    []Option `json:"options"`
+	CreatedAt  string   `json:"createdAt"`
+	Duration   int      `json:"duration"`
+	IsArchived bool     `json:"isArchived"`
 }
 
 type Option struct {
@@ -189,7 +189,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Prompt:       requestBody.Prompt,
 		CreatedAt:    currentTime,
 		Duration:     requestBody.Duration,
-		Archived:     false,
+		IsArchived:   false,
 	}
 
 	item, err := attributevalue.MarshalMap(ddbPoll)
@@ -279,13 +279,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	poll, err := json.Marshal(Poll{
-		PollId:    stripPrefix(ddbPoll.PkPollId, "poll|"),
-		UserId:    stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
-		Prompt:    ddbPoll.Prompt,
-		Options:   options,
-		CreatedAt: ddbPoll.CreatedAt,
-		Duration:  ddbPoll.Duration,
-		Archived:  ddbPoll.Archived,
+		PollId:     stripPrefix(ddbPoll.PkPollId, "poll|"),
+		UserId:     stripPrefix(ddbPoll.Gsi1PkUserId, "user|"),
+		Prompt:     ddbPoll.Prompt,
+		Options:    options,
+		CreatedAt:  ddbPoll.CreatedAt,
+		Duration:   ddbPoll.Duration,
+		IsArchived: ddbPoll.IsArchived,
 	})
 	if err != nil {
 		return logAndReturn(

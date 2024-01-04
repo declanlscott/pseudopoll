@@ -32,7 +32,7 @@ type DdbPoll struct {
 	Prompt       string `dynamodbav:"Prompt"`
 	CreatedAt    string `dynamodbav:"CreatedAt"`
 	Duration     int    `dynamodbav:"Duration"`
-	Archived     bool   `dynamodbav:"Archived"`
+	IsArchived   bool   `dynamodbav:"IsArchived"`
 }
 
 type Error struct {

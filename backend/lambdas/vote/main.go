@@ -38,7 +38,7 @@ type DdbPoll struct {
 	Prompt       string `dynamodbav:"Prompt"`
 	CreatedAt    string `dynamodbav:"CreatedAt"`
 	Duration     int64  `dynamodbav:"Duration"`
-	Archived     bool   `dynamodbav:"Archived"`
+	IsArchived   bool   `dynamodbav:"IsArchived"`
 }
 
 type DdbVote struct {
@@ -124,7 +124,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			continue
 		}
 
-		if ddbPoll.Archived {
+		if ddbPoll.IsArchived {
 			handleError(ctx, errors.New(fmt.Sprintf("poll %s is archived", ddbPoll.PkPollId)), messageBody.RequestId, ebClient)
 			continue
 		}

@@ -13,7 +13,7 @@ func TestHandler(t *testing.T) {
 	ctx := context.Background()
 
 	requestBody, _ := json.Marshal(RequestBody{
-		Archived: os.Getenv("TEST_POLL_ARCHIVED") == "true",
+		IsArchived: os.Getenv("TEST_POLL_ARCHIVED") == "true",
 	})
 
 	mockRequest := events.APIGatewayProxyRequest{

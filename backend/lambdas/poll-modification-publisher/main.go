@@ -31,9 +31,9 @@ type DdbPoll struct {
 	Duration struct {
 		N string `'json:"N"`
 	} `'json:"Duration"`
-	Archived struct {
+	IsArchived struct {
 		BOOL bool `'json:"BOOL"`
-	} `'json:"Archived"`
+	} `'json:"IsArchived"`
 }
 
 type PollModifiedDetail struct {
@@ -44,12 +44,12 @@ type PollModifiedDetail struct {
 }
 
 type PollModifiedPayload struct {
-	PollId    string `'json:"pollId"`
-	UserId    string `'json:"userId"`
-	Prompt    string `'json:"prompt"`
-	CreatedAt string `'json:"createdAt"`
-	Duration  int64  `'json:"duration"`
-	Archived  bool   `'json:"archived"`
+	PollId     string `'json:"pollId"`
+	UserId     string `'json:"userId"`
+	Prompt     string `'json:"prompt"`
+	CreatedAt  string `'json:"createdAt"`
+	Duration   int64  `'json:"duration"`
+	IsArchived bool   `'json:"isArchived"`
 }
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
@@ -91,12 +91,12 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 	}
 
 	payload, err := json.Marshal(PollModifiedPayload{
-		PollId:    pollModifiedDetail.DynamoDb.NewImage.PollId.S,
-		UserId:    pollModifiedDetail.DynamoDb.NewImage.UserId.S,
-		Prompt:    pollModifiedDetail.DynamoDb.NewImage.Prompt.S,
-		CreatedAt: pollModifiedDetail.DynamoDb.NewImage.CreatedAt.S,
-		Duration:  duration,
-		Archived:  pollModifiedDetail.DynamoDb.NewImage.Archived.BOOL,
+		PollId:     pollModifiedDetail.DynamoDb.NewImage.PollId.S,
+		UserId:     pollModifiedDetail.DynamoDb.NewImage.UserId.S,
+		Prompt:     pollModifiedDetail.DynamoDb.NewImage.Prompt.S,
+		CreatedAt:  pollModifiedDetail.DynamoDb.NewImage.CreatedAt.S,
+		Duration:   duration,
+		IsArchived: pollModifiedDetail.DynamoDb.NewImage.IsArchived.BOOL,
 	})
 	if err != nil {
 		log.Printf("Error: %s\n", err)
