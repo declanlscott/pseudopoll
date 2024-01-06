@@ -6,11 +6,12 @@ const { session } = useAuth();
 const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
-  query: { data: poll },
+  query: { data: poll, suspense },
   timeLeft,
   totalVotes,
   lastActivity,
 } = usePoll({ pollId });
+await suspense();
 
 const {
   mutate: archive,

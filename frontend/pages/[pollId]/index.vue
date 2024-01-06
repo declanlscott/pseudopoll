@@ -10,9 +10,10 @@ import type { z } from "zod";
 const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
-  query: { data: poll },
+  query: { data: poll, suspense },
   timeLeft,
 } = usePoll({ pollId });
+await suspense();
 
 const {
   mutate: vote,
