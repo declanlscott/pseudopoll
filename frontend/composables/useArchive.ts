@@ -1,51 +1,42 @@
 import type { Poll } from "~/openapi/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
-  const poll = useNuxtData<Poll>(`poll/${pollId}`);
+  const { queryKey } = queryOptionsFactory.poll({ pollId });
 
-  const isSubmitting = ref(false);
-  const error = ref<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  async function archive({ isArchived }: { isArchived: Poll["isArchived"] }) {
-    error.value = null;
-    isSubmitting.value = true;
+  const mutation = useMutation({
+    mutationKey: ["archive", pollId],
+    mutationFn: async ({ isArchived }: { isArchived: Poll["isArchived"] }) =>
+      await $fetch(`/api/polls/${pollId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isArchived }),
+      }),
+    onMutate: async ({ isArchived }) => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey });
 
-    try {
-      // Optimistic update
-      if (poll.data.value) {
-        poll.data.value.isArchived = isArchived;
-      }
+      // Snapshot the previous value
+      const previousPoll = queryClient.getQueryData<Poll>(queryKey);
 
-      // Make archive request
-      const { error } = await useAsyncData(`archive/${pollId}`, () =>
-        $fetch(`/api/polls/${pollId}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isArchived }),
-        }),
+      // Optimistically update to the new value
+      queryClient.setQueryData<Poll>(queryKey, (poll) =>
+        poll ? { ...poll, isArchived } : undefined,
       );
 
-      // Rollback optimistic update on error
-      if (error.value) {
-        if (poll.data.value) {
-          poll.data.value.isArchived = !isArchived;
-        }
-
-        throw error.value;
+      // Return a context object with the snapshotted value
+      return { previousPoll };
+    },
+    // If the mutation fails,
+    // use the context returned from onMutate to roll back
+    onError: (_error, _input, context) => {
+      if (context?.previousPoll) {
+        queryClient.setQueryData(queryKey, context.previousPoll);
       }
-    } catch (err: any) {
-      if (isNuxtError(err) || isError(err)) {
-        error.value = err;
-      } else {
-        error.value = {
-          name: "Error",
-          message: "An unknown error occurred.",
-        };
-      }
-    } finally {
-      isSubmitting.value = false;
-    }
-  }
+    },
+  });
 
-  return { archive, isSubmitting, error };
+  return mutation;
 }

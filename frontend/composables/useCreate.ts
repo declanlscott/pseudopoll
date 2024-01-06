@@ -8,10 +8,21 @@ export default function () {
   const createPollSchema = createPollBodySchema(config.public);
   type CreatePollSchema = z.infer<typeof createPollSchema>;
 
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const isSubmitting = ref(false);
-  const error = ref<Error | null>(null);
+  const mutation = useMutation({
+    mutationFn: ({ poll }: { poll: CreatePollSchema }) =>
+      $fetch("/api/polls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(poll),
+      }),
+    onSuccess: (poll) =>
+      queryClient.setQueryData(
+        queryOptionsFactory.poll({ pollId: poll.pollId }).queryKey,
+        poll,
+      ),
+  });
 
   const durations = [
     { label: "1 minute", value: 60 },
@@ -28,43 +39,5 @@ export default function () {
     { label: "1 week", value: 604800 },
   ];
 
-  async function create({ poll }: { poll: CreatePollSchema }) {
-    error.value = null;
-    isSubmitting.value = true;
-
-    try {
-      const { data: newPoll, error } = await useAsyncData("newPoll", () =>
-        $fetch(`/api/polls`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(poll),
-        }),
-      );
-
-      if (error.value) {
-        throw error.value;
-      }
-
-      if (newPoll.value) {
-        // Add new poll to cache
-        useNuxtData(`poll/${newPoll.value.pollId}`).data.value = newPoll.value;
-
-        // Redirect to new poll
-        router.push(`/${newPoll.value.pollId}`);
-      }
-    } catch (err: any) {
-      if (isNuxtError(err) || isError(err)) {
-        error.value = err;
-      } else {
-        error.value = {
-          name: "Error",
-          message: "An unknown error occurred.",
-        };
-      }
-    } finally {
-      isSubmitting.value = false;
-    }
-  }
-
-  return { durations, create, isSubmitting, error };
+  return { mutation, durations };
 }

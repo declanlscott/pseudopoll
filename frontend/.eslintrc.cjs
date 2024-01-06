@@ -5,7 +5,11 @@ const config = {
     browser: true,
     node: true,
   },
-  extends: ["@nuxtjs/eslint-config-typescript", "prettier"],
+  extends: [
+    "@nuxtjs/eslint-config-typescript",
+    "plugin:@tanstack/eslint-plugin-query/recommended",
+    "prettier",
+  ],
   rules: {},
   ignorePatterns: [".eslintrc.cjs"],
   parser: "vue-eslint-parser",

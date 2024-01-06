@@ -9,9 +9,16 @@ import type { z } from "zod";
 
 const { params } = useRoute();
 const pollId = params.pollId as string;
-const { data: poll } = await usePoll({ pollId });
+const {
+  query: { data: poll },
+  timeLeft,
+} = usePoll({ pollId });
 
-const { vote, isSubmitting, error: voteError } = useVote({ pollId });
+const {
+  mutate: vote,
+  isPending: voteIsPending,
+  error: voteError,
+} = useVote({ pollId });
 
 const config = useRuntimeConfig();
 const schema = voteRouterParamsSchema(config.public);
@@ -19,34 +26,14 @@ type Schema = z.infer<typeof schema>;
 
 const state = ref<Partial<Schema>>({ pollId });
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  await vote({ optionId: event.data.optionId });
+const router = useRouter();
+
+function onSubmit(event: FormSubmitEvent<Schema>) {
+  vote(
+    { optionId: event.data.optionId },
+    { onSuccess: () => router.push(`/${pollId}/results`) },
+  );
 }
-
-let intervalId: NodeJS.Timeout;
-const timeLeft = ref(0);
-
-onMounted(() => {
-  calculateTimeLeft();
-  intervalId = setInterval(calculateTimeLeft, 1000);
-});
-
-function calculateTimeLeft() {
-  if (!poll.value) {
-    timeLeft.value = 0;
-    return;
-  }
-
-  const now = Date.now();
-  const createdAt = new Date(poll.value.createdAt).getTime();
-  const expiresAt = createdAt + poll.value.duration * 1000;
-
-  timeLeft.value = Math.floor((expiresAt - now) / 1000);
-}
-
-onBeforeUnmount(() => {
-  clearInterval(intervalId);
-});
 </script>
 
 <template>
@@ -125,9 +112,9 @@ onBeforeUnmount(() => {
           size="lg"
           icon="i-heroicons-document-check"
           type="submit"
-          :loading="isSubmitting"
+          :loading="voteIsPending"
         >
-          {{ isSubmitting ? "Voting..." : "Vote" }}
+          {{ voteIsPending ? "Voting..." : "Vote" }}
         </UButton>
 
         <UButton
