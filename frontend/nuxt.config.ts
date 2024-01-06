@@ -5,7 +5,12 @@ const env = envSchema.parse(process.env);
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@hebilicious/authjs-nuxt", "@nuxt/ui", "@nuxtjs/eslint-module"],
+  modules: [
+    "@nuxtjs/eslint-module",
+    "@hebilicious/authjs-nuxt",
+    "@hebilicious/vue-query-nuxt",
+    "@nuxt/ui",
+  ],
   runtimeConfig: {
     authJs: {
       secret: env.NUXT_AUTH_JS_SECRET,

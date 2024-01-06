@@ -17,10 +17,18 @@ const state = ref<Schema>({
   duration: config.public.minDuration,
 });
 
-const { durations, create, isSubmitting, error } = useCreate();
+const {
+  mutation: { mutate: create, isPending, error },
+  durations,
+} = useCreate();
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  await create({ poll: event.data });
+const router = useRouter();
+
+function onSubmit(event: FormSubmitEvent<Schema>) {
+  create(
+    { poll: event.data },
+    { onSuccess: ({ pollId }) => router.push(`/${pollId}`) },
+  );
 }
 </script>
 
@@ -40,7 +48,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           placeholder="Pancakes or waffles?"
           size="xl"
           class="w-full"
-          :disabled="isSubmitting"
+          :disabled="isPending"
         ></UTextarea>
       </UFormGroup>
 
@@ -74,7 +82,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                   index === $config.public.maxOptions - 1 && 'pr-[54px]',
                 )
               "
-              :disabled="isSubmitting"
+              :disabled="isPending"
             >
               <div class="absolute inset-y-0 end-0 flex items-center">
                 <UTooltip
@@ -94,7 +102,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                           'rounded-r-none',
                       )
                     "
-                    :disabled="isSubmitting"
+                    :disabled="isPending"
                     @click="state.options.push('')"
                   ></UButton>
                 </UTooltip>
@@ -108,7 +116,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     icon="i-heroicons-minus"
                     size="lg"
                     class="rounded-l-none"
-                    :disabled="isSubmitting"
+                    :disabled="isPending"
                     @click="state.options.splice(index, 1)"
                   ></UButton>
                 </UTooltip>
@@ -124,7 +132,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             v-model="state.duration"
             name="duration"
             :options="durations"
-            :disabled="isSubmitting"
+            :disabled="isPending"
             class="w-fit"
           ></USelect>
         </UFormGroup>
@@ -133,10 +141,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           color="primary"
           size="lg"
           icon="i-heroicons-pencil-square"
-          :loading="isSubmitting"
+          :loading="isPending"
           type="submit"
         >
-          {{ isSubmitting ? "Creating..." : "Create" }}
+          {{ isPending ? "Creating..." : "Create" }}
         </UButton>
       </div>
 

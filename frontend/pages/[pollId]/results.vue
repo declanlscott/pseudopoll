@@ -5,69 +5,22 @@ const { session } = useAuth();
 
 const { params } = useRoute();
 const pollId = params.pollId as string;
-const { data: poll } = await usePoll({ pollId });
-
-const totalVotes = computed(() => {
-  if (!poll.value) {
-    return 0;
-  }
-
-  return poll.value.options.reduce((total, option) => {
-    return total + option.votes;
-  }, 0);
-});
-
-const lastActivity = computed(() => {
-  if (!poll.value) {
-    return "";
-  }
-
-  const lastUpdatedAt = poll.value.options.reduce((lastUpdatedAt, option) => {
-    if (option.updatedAt > lastUpdatedAt) {
-      return option.updatedAt;
-    }
-
-    return lastUpdatedAt;
-  }, poll.value.createdAt);
-
-  return `Last activity ${formatDistance(new Date(lastUpdatedAt), new Date(), {
-    addSuffix: true,
-  })}`;
-});
-
-let intervalId: NodeJS.Timeout;
-const timeLeft = ref(0);
-
-onMounted(() => {
-  calculateTimeLeft();
-  intervalId = setInterval(calculateTimeLeft, 1000);
-});
-
-function calculateTimeLeft() {
-  if (!poll.value) {
-    timeLeft.value = 0;
-    return;
-  }
-
-  const now = Date.now();
-  const createdAt = new Date(poll.value.createdAt).getTime();
-  const expiresAt = createdAt + poll.value.duration * 1000;
-
-  timeLeft.value = Math.floor((expiresAt - now) / 1000);
-}
-
-onBeforeUnmount(() => {
-  clearInterval(intervalId);
-});
+const {
+  query: { data: poll },
+  timeLeft,
+  totalVotes,
+  lastActivity,
+} = usePoll({ pollId });
 
 const {
-  archive,
-  isSubmitting: isArchiving,
+  mutate: archive,
+  isPending: isArchivePending,
   error: archiveError,
 } = useArchive({ pollId });
+
 const {
-  closeNow,
-  isSubmitting: isClosing,
+  mutate: updateDuration,
+  isPending: durationIsPending,
   error: durationError,
 } = useDuration({ pollId });
 </script>
@@ -123,8 +76,8 @@ const {
             <UButton
               icon="i-heroicons-clock"
               color="gray"
-              :loading="isClosing"
-              @click="() => closeNow()"
+              :loading="durationIsPending"
+              @click="() => updateDuration({ duration: -1 })"
             ></UButton>
           </UTooltip>
 
@@ -136,7 +89,7 @@ const {
                   : 'i-heroicons-archive-box'
               "
               color="gray"
-              :loading="isArchiving"
+              :loading="isArchivePending"
               @click="() => archive({ isArchived: !poll?.isArchived })"
             ></UButton>
           </UTooltip>
