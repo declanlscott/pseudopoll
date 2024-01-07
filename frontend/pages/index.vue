@@ -22,14 +22,17 @@ const {
   durations,
 } = useCreate();
 
-const router = useRouter();
+const { push } = useRouter();
 
 function onSubmit(event: FormSubmitEvent<Schema>) {
   create(
     { poll: event.data },
-    { onSuccess: ({ pollId }) => router.push(`/${pollId}`) },
+    { onSuccess: ({ pollId }) => push(`/${pollId}`) },
   );
 }
+
+const placeholder =
+  placeholders.poll[Math.floor(Math.random() * placeholders.poll.length)];
 </script>
 
 <template>
@@ -43,13 +46,19 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
       <h1 class="text-3xl font-bold">Create a poll</h1>
 
       <UFormGroup name="prompt" label="Prompt">
-        <UTextarea
-          v-model="state.prompt"
-          placeholder="Pancakes or waffles?"
-          size="xl"
-          class="w-full"
-          :disabled="isPending"
-        ></UTextarea>
+        <ClientOnly>
+          <template #fallback>
+            <UTextarea size="xl" class="w-full" disabled></UTextarea>
+          </template>
+
+          <UTextarea
+            v-model="state.prompt"
+            :placeholder="placeholder.prompt"
+            size="xl"
+            class="w-full"
+            :disabled="isPending"
+          ></UTextarea>
+        </ClientOnly>
       </UFormGroup>
 
       <ul class="flex flex-col gap-3">
@@ -59,69 +68,79 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
             :label="`Option ${index + 1}`"
             class="w-full"
           >
-            <UInput
-              v-model="state.options[index]"
-              size="lg"
-              :placeholder="`${
-                index === 0 ? 'Pancakes!' : index === 1 ? 'Waffles!' : ''
-              }`"
-              :input-class="
-                cn(
-                  // minimum and last option
-                  index === state.options.length - 1 && 'pr-[54px]',
+            <ClientOnly>
+              <template #fallback>
+                <UInput size="lg" class="w-full" disabled></UInput>
+              </template>
 
-                  // minimum + 1 to maximum - 1 option, but not last
-                  index > $config.public.minOptions - 1 && 'pr-[54px]',
+              <UInput
+                v-model="state.options[index]"
+                size="lg"
+                :placeholder="`${
+                  index === 0
+                    ? placeholder.options[index]
+                    : index === 1
+                      ? placeholder.options[index]
+                      : ''
+                }`"
+                :input-class="
+                  cn(
+                    // minimum and last option
+                    index === state.options.length - 1 && 'pr-[54px]',
 
-                  // last option, but not maximum
-                  index === state.options.length - 1 &&
-                    index > config.public.minOptions - 1 &&
-                    'pr-[94px]',
+                    // minimum + 1 to maximum - 1 option, but not last
+                    index > $config.public.minOptions - 1 && 'pr-[54px]',
 
-                  // maximum option
-                  index === $config.public.maxOptions - 1 && 'pr-[54px]',
-                )
-              "
-              :disabled="isPending"
-            >
-              <div class="absolute inset-y-0 end-0 flex items-center">
-                <UTooltip
-                  v-if="
+                    // last option, but not maximum
                     index === state.options.length - 1 &&
-                    index < $config.public.maxOptions - 1
-                  "
-                  :text="`Add option ${index + 2}`"
-                >
-                  <UButton
-                    icon="i-heroicons-plus"
-                    size="lg"
-                    :class="
-                      cn(
-                        'rounded-l-none',
-                        index > $config.public.minOptions - 1 &&
-                          'rounded-r-none',
-                      )
-                    "
-                    :disabled="isPending"
-                    @click="state.options.push('')"
-                  ></UButton>
-                </UTooltip>
+                      index > config.public.minOptions - 1 &&
+                      'pr-[94px]',
 
-                <UTooltip
-                  v-if="index > $config.public.minOptions - 1"
-                  :text="`Remove option ${index + 1}`"
-                >
-                  <UButton
-                    color="gray"
-                    icon="i-heroicons-minus"
-                    size="lg"
-                    class="rounded-l-none"
-                    :disabled="isPending"
-                    @click="state.options.splice(index, 1)"
-                  ></UButton>
-                </UTooltip>
-              </div>
-            </UInput>
+                    // maximum option
+                    index === $config.public.maxOptions - 1 && 'pr-[54px]',
+                  )
+                "
+                :disabled="isPending"
+              >
+                <div class="absolute inset-y-0 end-0 flex items-center">
+                  <UTooltip
+                    v-if="
+                      index === state.options.length - 1 &&
+                      index < $config.public.maxOptions - 1
+                    "
+                    :text="`Add option ${index + 2}`"
+                  >
+                    <UButton
+                      icon="i-heroicons-plus"
+                      size="lg"
+                      :class="
+                        cn(
+                          'rounded-l-none',
+                          index > $config.public.minOptions - 1 &&
+                            'rounded-r-none',
+                        )
+                      "
+                      :disabled="isPending"
+                      @click="state.options.push('')"
+                    ></UButton>
+                  </UTooltip>
+
+                  <UTooltip
+                    v-if="index > $config.public.minOptions - 1"
+                    :text="`Remove option ${index + 1}`"
+                  >
+                    <UButton
+                      color="gray"
+                      icon="i-heroicons-minus"
+                      size="lg"
+                      class="rounded-l-none"
+                      :disabled="isPending"
+                      @click="state.options.splice(index, 1)"
+                    ></UButton>
+                  </UTooltip>
+                </div>
+              </UInput>
+            </ClientOnly>
           </UFormGroup>
         </li>
       </ul>
