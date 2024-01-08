@@ -47,6 +47,8 @@ type VoteSucceededPayload struct {
 type VoteFailedPayload = VoteFailedDetail
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
+	log.Printf("Processing event: %s\n", event)
+
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		log.Printf("Error: %s\n", err)

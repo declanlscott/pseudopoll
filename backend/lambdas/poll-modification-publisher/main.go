@@ -53,6 +53,8 @@ type PollModifiedPayload struct {
 }
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
+	log.Printf("Processing event: %s\n", event)
+
 	if event.Source != os.Getenv("SOURCE") || event.DetailType != os.Getenv("DETAIL_TYPE") {
 		log.Printf("Unknown event source or detail type: %s, %s\n", event.Source, event.DetailType)
 		return

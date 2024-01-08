@@ -5,20 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d82eb215-2ba7-4f23-b26c-a5563c75098d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../create-poll/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../create-poll/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../get-poll/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../get-poll/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vote/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/nuxt.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/nuxt.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/pages/[pollId]/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/pages/[pollId]/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/pages/[pollId]/results.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/pages/[pollId]/results.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/pages/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/pages/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].delete.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].delete.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].patch.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId].patch.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId]/[optionId].post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/server/api/polls/[pollId]/[optionId].post.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/stores/polls.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/.terraform.lock.hcl" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/.terraform.lock.hcl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/main.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/choreography/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/choreography/main.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/choreography/variables.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/choreography/variables.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/main.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/outputs.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/outputs.tf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
