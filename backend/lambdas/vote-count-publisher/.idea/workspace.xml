@@ -5,14 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d82eb215-2ba7-4f23-b26c-a5563c75098d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/.terraform.lock.hcl" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/.terraform.lock.hcl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/main.tf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/choreography/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/choreography/main.tf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/choreography/variables.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/choreography/variables.tf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/main.tf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/outputs.tf" beforeDir="false" afterPath="$PROJECT_DIR$/../../../terraform/modules/microservices/publisher/outputs.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../poll-modification-publisher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../poll-modification-publisher/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
