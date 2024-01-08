@@ -5,6 +5,8 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
 
   const queryClient = useQueryClient();
 
+  const { $mqtt } = useNuxtApp();
+
   const mutation = useMutation({
     mutationKey: ["vote", pollId],
     mutationFn: ({
@@ -47,9 +49,10 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
         queryClient.setQueryData(queryKey, context.previousPoll);
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuccess: ({ requestId }) => {
-      // TODO: Subscribe to requestId channel and wait for response
+    onSuccess: async ({ requestId }) => {
+      await $mqtt.subscribeAsync(`vote|${requestId}`, {
+        qos: 1,
+      });
     },
   });
 

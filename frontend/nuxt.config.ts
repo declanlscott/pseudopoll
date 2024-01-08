@@ -36,6 +36,10 @@ export default defineNuxtConfig({
         alphabet: env.NUXT_PUBLIC_NANO_ID_ALPHABET,
         length: env.NUXT_PUBLIC_NANO_ID_LENGTH,
       },
+      iot: {
+        endpoint: env.NUXT_PUBLIC_IOT_ENDPOINT,
+        customAuthorizerName: env.NUXT_PUBLIC_IOT_CUSTOM_AUTHORIZER_NAME,
+      },
     },
     api: {
       baseUrl: env.NUXT_API_BASE_URL,

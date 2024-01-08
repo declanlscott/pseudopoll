@@ -30,4 +30,6 @@ export default z.object({
   NUXT_PUBLIC_MAX_OPTIONS: z.preprocess(Number, z.number().int().positive()),
   NUXT_PUBLIC_MIN_DURATION: z.preprocess(Number, z.number().int().positive()),
   NUXT_PUBLIC_MAX_DURATION: z.preprocess(Number, z.number().int().positive()),
+  NUXT_PUBLIC_IOT_ENDPOINT: z.string(),
+  NUXT_PUBLIC_IOT_CUSTOM_AUTHORIZER_NAME: z.string(),
 });

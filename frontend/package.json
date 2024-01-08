@@ -37,10 +37,12 @@
     "@hebilicious/authjs-nuxt": "^0.3.5",
     "@hebilicious/vue-query-nuxt": "^0.3.0",
     "@nuxt/ui": "^2.11.1",
+    "@paralleldrive/cuid2": "^2.2.2",
     "@tanstack/vue-query": "^5.17.9",
     "@tanstack/vue-query-devtools": "^5.17.9",
     "clsx": "^2.1.0",
     "date-fns": "^3.1.0",
+    "mqtt": "^5.3.4",
     "openapi-fetch": "^0.8.2",
     "tailwind-merge": "^2.2.0",
     "zod": "^3.22.4"
