@@ -57,6 +57,18 @@ data "aws_iam_policy_document" "pipe" {
 
     resources = [aws_cloudwatch_event_bus.event_bus.arn]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = ["arn:aws:logs:*:*:*"]
+  }
 }
 
 resource "aws_iam_role_policy" "pipe" {
@@ -93,6 +105,56 @@ resource "aws_pipes_pipe" "pipe" {
   depends_on = [aws_iam_role_policy.pipe]
 }
 
+
+
+resource "aws_cloudwatch_log_group" "events" {
+  name              = "/aws/events/pseudopoll"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_event_rule" "log_events" {
+  event_bus_name = aws_cloudwatch_event_bus.event_bus.name
+  name           = "pseudopoll-log-events"
+  description    = "A rule that matches all events from this account on the event bus and sends them to the events log group"
+  state          = "DISABLED"
+
+  event_pattern = jsonencode({
+    account = [data.aws_caller_identity.main.account_id]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "log_events" {
+  rule           = "pseudopoll-log-events"
+  event_bus_name = aws_cloudwatch_event_bus.event_bus.name
+  arn            = aws_cloudwatch_log_group.events.arn
+}
+
+data "aws_iam_policy_document" "log_events" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type = "Service"
+      identifiers = [
+        "delivery.logs.amazonaws.com",
+        "events.amazonaws.com",
+      ]
+    }
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = ["${aws_cloudwatch_log_group.events.arn}:*"]
+  }
+}
+
+resource "aws_cloudwatch_log_resource_policy" "log_events" {
+  policy_name     = "pseudopoll-log-events"
+  policy_document = data.aws_iam_policy_document.log_events.json
+}
+
 resource "aws_cloudwatch_event_rule" "vote_succeeded" {
   name           = "pseudopoll-vote-succeeded-event-rule"
   description    = "A rule that matches succeeded vote events from the dynamodb stream pipe and sends them to the publisher microservice"
@@ -102,11 +164,14 @@ resource "aws_cloudwatch_event_rule" "vote_succeeded" {
     source      = [{ equals-ignore-case = var.ddb_stream_pipe_event_source }]
     detail-type = [{ equals-ignore-case = var.ddb_stream_pipe_event_detail_type }]
     detail = {
-      eventName = ["INSERT"]
+      eventName = [{ equals-ignore-case = "INSERT" }]
       dynamodb = {
         Keys = {
           PK = {
             S = [{ prefix = "voter|" }]
+          },
+          SK = {
+            S = [{ prefix = "poll|" }]
           }
         }
       }
@@ -121,7 +186,6 @@ resource "aws_lambda_permission" "vote_succeeded" {
   principal     = "events.amazonaws.com"
 
   source_arn = aws_cloudwatch_event_rule.vote_succeeded.arn
-  qualifier  = var.vote_result_publisher_lambda_alias_name
 }
 
 resource "aws_cloudwatch_event_target" "vote_succeeded" {
@@ -149,7 +213,6 @@ resource "aws_lambda_permission" "vote_failed" {
   principal     = "events.amazonaws.com"
 
   source_arn = aws_cloudwatch_event_rule.vote_failed.arn
-  qualifier  = var.vote_result_publisher_lambda_alias_name
 }
 
 resource "aws_cloudwatch_event_target" "vote_failed" {
@@ -168,10 +231,13 @@ resource "aws_cloudwatch_event_rule" "vote_counted" {
     source      = [{ equals-ignore-case = var.ddb_stream_pipe_event_source }]
     detail-type = [{ equals-ignore-case = var.ddb_stream_pipe_event_detail_type }]
     detail = {
-      eventName = ["MODIFY"]
+      eventName = [{ equals-ignore-case = "MODIFY" }]
       dynamodb = {
         Keys = {
           PK = {
+            S = [{ prefix = "option|" }]
+          }
+          SK = {
             S = [{ prefix = "option|" }]
           }
         }
@@ -187,7 +253,6 @@ resource "aws_lambda_permission" "vote_counted" {
   principal     = "events.amazonaws.com"
 
   source_arn = aws_cloudwatch_event_rule.vote_counted.arn
-  qualifier  = var.vote_count_publisher_lambda_alias_name
 }
 
 resource "aws_cloudwatch_event_target" "vote_counted" {
@@ -206,10 +271,13 @@ resource "aws_cloudwatch_event_rule" "poll_modified" {
     source      = [{ equals-ignore-case = var.ddb_stream_pipe_event_source }]
     detail-type = [{ equals-ignore-case = var.ddb_stream_pipe_event_detail_type }]
     detail = {
-      eventName = ["MODIFY"]
+      eventName = [{ equals-ignore-case = "MODIFY" }]
       dynamodb = {
         Keys = {
           PK = {
+            S = [{ prefix = "poll|" }]
+          }
+          SK = {
             S = [{ prefix = "poll|" }]
           }
         }
@@ -225,5 +293,4 @@ resource "aws_lambda_permission" "poll_modified" {
   principal     = "events.amazonaws.com"
 
   source_arn = aws_cloudwatch_event_rule.poll_modified.arn
-  qualifier  = var.poll_modification_publisher_lambda_alias_name
 }

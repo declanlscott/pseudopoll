@@ -51,13 +51,6 @@ module "vote_result_publisher_lambda" {
   }
 }
 
-resource "aws_lambda_alias" "vote_result_publisher_alias" {
-  name             = "pseudopoll-vote-result-publisher-alias"
-  description      = "An alias for the vote result publisher lambda function"
-  function_name    = module.vote_result_publisher_lambda.function_name
-  function_version = "$LATEST"
-}
-
 module "vote_count_publisher_lambda_role" {
   source    = "../../lambda/iam"
   role_name = "pseudopoll-vote-count-publisher-lambda-role"
@@ -86,13 +79,6 @@ module "vote_count_publisher_lambda" {
   }
 }
 
-resource "aws_lambda_alias" "vote_count_publisher_alias" {
-  name             = "pseudopoll-vote-count-publisher-alias"
-  description      = "An alias for the vote publisher lambda function"
-  function_name    = module.vote_count_publisher_lambda.function_name
-  function_version = "$LATEST"
-}
-
 module "poll_modification_publisher_lambda_role" {
   source    = "../../lambda/iam"
   role_name = "pseudopoll-poll-modification-publisher-lambda-role"
@@ -119,13 +105,6 @@ module "poll_modification_publisher_lambda" {
     SOURCE      = var.ddb_stream_pipe_event_source
     DETAIL_TYPE = var.ddb_stream_pipe_event_detail_type
   }
-}
-
-resource "aws_lambda_alias" "poll_modification_publisher_alias" {
-  name             = "pseudopoll-poll-modification-publisher-alias"
-  description      = "An alias for the poll modification publisher lambda function"
-  function_name    = module.poll_modification_publisher_lambda.function_name
-  function_version = "$LATEST"
 }
 
 module "iot_authorizer_lambda_role" {

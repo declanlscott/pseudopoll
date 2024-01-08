@@ -2,12 +2,12 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.20.1"
+      version = "5.31.0"
     }
 
     archive = {
       source  = "hashicorp/archive"
-      version = "2.4.0"
+      version = "2.4.1"
     }
   }
 
@@ -206,15 +206,12 @@ module "choreography" {
 
   vote_result_publisher_lambda_function_name = module.publisher_microservice.vote_result_publisher_lambda_function_name
   vote_result_publisher_lambda_arn           = module.publisher_microservice.vote_result_publisher_lambda_arn
-  vote_result_publisher_lambda_alias_name    = module.publisher_microservice.vote_result_publisher_lambda_alias_name
 
   vote_count_publisher_lambda_function_name = module.publisher_microservice.vote_count_publisher_lambda_function_name
   vote_count_publisher_lambda_arn           = module.publisher_microservice.vote_count_publisher_lambda_arn
-  vote_count_publisher_lambda_alias_name    = module.publisher_microservice.vote_count_publisher_lambda_alias_name
 
   poll_modification_publisher_lambda_function_name = module.publisher_microservice.poll_modification_publisher_lambda_function_name
   poll_modification_publisher_lambda_arn           = module.publisher_microservice.poll_modification_publisher_lambda_arn
-  poll_modification_publisher_lambda_alias_name    = module.publisher_microservice.poll_modification_publisher_lambda_alias_name
 
   ddb_stream_pipe_event_source      = local.ddb_stream_pipe_event_source
   ddb_stream_pipe_event_detail_type = local.ddb_stream_pipe_event_detail_type
