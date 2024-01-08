@@ -76,3 +76,9 @@ variable "max_duration" {
   description = "Maximum duration of the poll"
   default     = 604800
 }
+
+variable "iot_custom_authorizer_name" {
+  description = "The name of the IoT custom authorizer"
+  type        = string
+  default     = "pseudopoll-iot-authorizer"
+}

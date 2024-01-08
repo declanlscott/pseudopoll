@@ -264,4 +264,9 @@ module "publisher_microservice" {
   vote_failed_source                = local.vote_failed_source
   vote_failed_detail_type           = local.vote_failed_detail_type
   region                            = local.region
+  iot_custom_authorizer_name        = var.iot_custom_authorizer_name
+}
+
+data "aws_iot_endpoint" "iot" {
+  endpoint_type = "iot:Data-ATS"
 }

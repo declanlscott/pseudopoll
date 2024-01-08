@@ -27,3 +27,8 @@ variable "region" {
   description = "The region of the AWS account"
   type        = string
 }
+
+variable "iot_custom_authorizer_name" {
+  description = "The name of the IoT custom authorizer"
+  type        = string
+}

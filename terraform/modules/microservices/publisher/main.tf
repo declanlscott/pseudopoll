@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "lambda_iot_publish" {
 }
 
 resource "aws_iam_policy" "lambda_iot_publish" {
-  name        = "pusedopoll-lambda-iot-publish-policy"
+  name        = "pseudopoll-lambda-iot-publish-policy"
   description = "A policy that allows a lambda to publish to an IoT topic"
   policy      = data.aws_iam_policy_document.lambda_iot_publish.json
 }
@@ -114,7 +114,7 @@ module "iot_authorizer_lambda_role" {
 
 module "iot_authorizer_lambda" {
   source              = "../../lambda"
-  function_name       = "pseudopoll-iot-authorizer"
+  function_name       = var.iot_custom_authorizer_name
   role_arn            = module.iot_authorizer_lambda_role.role_arn
   archive_source_file = "${path.module}/../../../../backend/lambdas/iot-authorizer/bin/bootstrap"
   archive_output_path = "${path.module}/../../../../backend/lambdas/iot-authorizer/bin/iot-authorizer.zip"
@@ -125,8 +125,17 @@ module "iot_authorizer_lambda" {
 }
 
 resource "aws_iot_authorizer" "iot_authorizer" {
-  name                    = "pseudopoll-iot-authorizer"
+  name                    = var.iot_custom_authorizer_name
   authorizer_function_arn = module.iot_authorizer_lambda.arn
   signing_disabled        = true
   status                  = "ACTIVE"
+}
+
+resource "aws_lambda_permission" "iot_authorizer" {
+  statement_id  = "PseudoPollAllowIoTCoreCustomAuthorizerLambdaExecution"
+  action        = "lambda:InvokeFunction"
+  function_name = module.iot_authorizer_lambda.function_name
+  principal     = "iot.amazonaws.com"
+
+  source_arn = aws_iot_authorizer.iot_authorizer.arn
 }

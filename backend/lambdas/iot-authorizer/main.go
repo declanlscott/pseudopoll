@@ -31,7 +31,7 @@ func handler(
 
 	return events.IoTCoreCustomAuthorizerResponse{
 		IsAuthenticated:          true,
-		PrincipalID:              "user",
+		PrincipalID:              "Unauthenticated",
 		DisconnectAfterInSeconds: 3600,
 		RefreshAfterInSeconds:    300,
 		PolicyDocuments: []*events.IAMPolicyDocument{
