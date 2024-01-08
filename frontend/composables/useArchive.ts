@@ -1,7 +1,7 @@
 import type { Poll } from "~/openapi/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
-  const { queryKey } = queryOptionsFactory.poll({ pollId });
+  const { queryKey } = useQueryOptionsFactory().poll({ pollId });
 
   const queryClient = useQueryClient();
 

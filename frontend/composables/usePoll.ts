@@ -3,7 +3,8 @@ import { formatDistance } from "date-fns";
 import type { Poll } from "~/openapi/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
-  const query = useQuery(queryOptionsFactory.poll({ pollId }));
+  const { poll } = useQueryOptionsFactory();
+  const query = useQuery(poll({ pollId }));
 
   let timer: ReturnType<typeof setTimeout> | null = null;
   const timeLeft = ref(0);

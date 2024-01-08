@@ -2,6 +2,7 @@ import { createPollBodySchema } from "~/schemas/polls";
 
 // eslint-disable-next-line import/order
 import type { z } from "zod";
+import type { Poll } from "~/openapi/types";
 
 export default function () {
   const config = useRuntimeConfig();
@@ -10,6 +11,8 @@ export default function () {
 
   const queryClient = useQueryClient();
 
+  const { poll } = useQueryOptionsFactory();
+
   const mutation = useMutation({
     mutationFn: ({ poll }: { poll: CreatePollSchema }) =>
       $fetch("/api/polls", {
@@ -17,10 +20,10 @@ export default function () {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(poll),
       }),
-    onSuccess: (poll) =>
-      queryClient.setQueryData(
-        queryOptionsFactory.poll({ pollId: poll.pollId }).queryKey,
-        poll,
+    onSuccess: (data) =>
+      queryClient.setQueryData<Poll>(
+        poll({ pollId: data.pollId }).queryKey,
+        data,
       ),
   });
 
