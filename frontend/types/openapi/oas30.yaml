@@ -1,7 +1,7 @@
 openapi: "3.0.1"
 info:
   title: "pseudopoll-rest-api"
-  version: "2024-01-09T13:36:55Z"
+  version: "2024-01-09T13:41:30Z"
 servers:
 - url: "https://api.pseudopoll.com"
 paths:

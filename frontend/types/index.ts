@@ -1,4 +1,4 @@
-import type { components } from "~/openapi/types/generated";
+import type { components } from "~/types/openapi/generated";
 
 export type Poll = components["schemas"]["Poll"];
 

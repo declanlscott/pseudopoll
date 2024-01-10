@@ -11,8 +11,8 @@
     "lint": "eslint --ext \".ts,.vue\" --ignore-path .gitignore .",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
-    "openapi:spec": "aws apigateway get-export --parameters extensions='apigateway' --rest-api-id $(terraform -chdir=../terraform output -raw rest_api_id) --stage-name $(terraform -chdir=../terraform output -raw rest_api_stage_name) --export-type oas30 --accepts application/yaml ./openapi/specs/oas30.yaml",
-    "openapi:typegen": "openapi-typescript ./openapi/specs/oas30.yaml -o ./openapi/types/generated.d.ts"
+    "openapi:spec": "aws apigateway get-export --parameters extensions='apigateway' --rest-api-id $(terraform -chdir=../terraform output -raw rest_api_id) --stage-name $(terraform -chdir=../terraform output -raw rest_api_stage_name) --export-type oas30 --accepts application/yaml ./types/openapi/oas30.yaml",
+    "openapi:typegen": "openapi-typescript ./types/openapi/oas30.yaml -o ./types/openapi/generated.d.ts"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
