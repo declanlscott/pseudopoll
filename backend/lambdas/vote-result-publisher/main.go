@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -35,16 +36,35 @@ type VoteSucceededDetail struct {
 type VoteFailedDetail struct {
 	RequestId string `json:"requestId"`
 	Error     string `json:"error"`
+	PollId    string `json:"pollId"`
+	OptionId  string `json:"optionId"`
 }
 
-type VoteSucceededPayload struct {
+type Payload struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+type VoteSucceededPayloadData struct {
 	VoterId  string `json:"voterId"`
 	PollId   string `json:"pollId"`
 	OptionId string `json:"optionId"`
 	VoteId   string `json:"voteId"`
 }
 
-type VoteFailedPayload = VoteFailedDetail
+type VoteFailedPayloadData struct {
+	Error    string `json:"error"`
+	PollId   string `json:"pollId"`
+	OptionId string `json:"optionId"`
+}
+
+func stripPrefix(s string, prefix string) string {
+	if len(s) > len(prefix) && s[0:len(prefix)] == prefix {
+		return s[len(prefix):]
+	}
+
+	return s
+}
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
 	log.Printf("Processing event: %s\n", event)
@@ -65,11 +85,14 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		}
 		log.Printf("Vote succeeded: %s\n", voteSucceededDetail.DynamoDb.NewImage.VoteId.S)
 
-		payload, err := json.Marshal(VoteSucceededPayload{
-			VoterId:  voteSucceededDetail.DynamoDb.NewImage.PkVoterId.S,
-			PollId:   voteSucceededDetail.DynamoDb.NewImage.SkPollId.S,
-			OptionId: voteSucceededDetail.DynamoDb.NewImage.OptionId.S,
-			VoteId:   voteSucceededDetail.DynamoDb.NewImage.VoteId.S,
+		payload, err := json.Marshal(Payload{
+			Type: "voteSucceeded",
+			Data: VoteSucceededPayloadData{
+				VoterId:  stripPrefix(voteSucceededDetail.DynamoDb.NewImage.PkVoterId.S, "voter|"),
+				PollId:   stripPrefix(voteSucceededDetail.DynamoDb.NewImage.SkPollId.S, "poll|"),
+				OptionId: voteSucceededDetail.DynamoDb.NewImage.OptionId.S,
+				VoteId:   voteSucceededDetail.DynamoDb.NewImage.VoteId.S,
+			},
 		})
 		if err != nil {
 			log.Printf("Error: %s\n", err)
@@ -77,7 +100,7 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		}
 
 		_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
-			Topic:       &voteSucceededDetail.DynamoDb.NewImage.VoteId.S,
+			Topic:       aws.String(fmt.Sprintf("vote/%s", voteSucceededDetail.DynamoDb.NewImage.VoteId.S)),
 			ContentType: aws.String("application/json"),
 			Payload:     payload,
 		})
@@ -97,9 +120,13 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		}
 		log.Printf("Vote failed: %s\n", voteFailedDetail.RequestId)
 
-		payload, err := json.Marshal(VoteFailedPayload{
-			RequestId: voteFailedDetail.RequestId,
-			Error:     voteFailedDetail.Error,
+		payload, err := json.Marshal(Payload{
+			Type: "voteFailed",
+			Data: VoteFailedPayloadData{
+				Error:    voteFailedDetail.Error,
+				PollId:   voteFailedDetail.PollId,
+				OptionId: voteFailedDetail.OptionId,
+			},
 		})
 		if err != nil {
 			log.Printf("Error: %s\n", err)
@@ -107,7 +134,7 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		}
 
 		_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
-			Topic:       &voteFailedDetail.RequestId,
+			Topic:       aws.String(fmt.Sprintf("vote/%s", voteFailedDetail.RequestId)),
 			ContentType: aws.String("application/json"),
 			Payload:     payload,
 		})

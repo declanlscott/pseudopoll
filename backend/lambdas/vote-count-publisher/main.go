@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -40,11 +41,24 @@ type VoteCountedDetail struct {
 	} `json:"dynamodb"`
 }
 
-type VoteCountedPayload struct {
+type Payload struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+type VoteCountedPayloadData struct {
 	OptionId string `json:"optionId"`
 	PollId   string `json:"pollId"`
 	VotedAt  string `json:"updatedAt"`
 	Votes    int64  `json:"votes"`
+}
+
+func stripPrefix(s string, prefix string) string {
+	if len(s) > len(prefix) && s[0:len(prefix)] == prefix {
+		return s[len(prefix):]
+	}
+
+	return s
 }
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
@@ -80,11 +94,14 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		return
 	}
 
-	payload, err := json.Marshal(VoteCountedPayload{
-		OptionId: voteCountedDetail.DynamoDb.NewImage.OptionId.S,
-		PollId:   voteCountedDetail.DynamoDb.NewImage.PollId.S,
-		VotedAt:  voteCountedDetail.DynamoDb.NewImage.UpdatedAt.S,
-		Votes:    votes,
+	payload, err := json.Marshal(Payload{
+		Type: "voteCounted",
+		Data: VoteCountedPayloadData{
+			OptionId: stripPrefix(voteCountedDetail.DynamoDb.NewImage.OptionId.S, "option|"),
+			PollId:   stripPrefix(voteCountedDetail.DynamoDb.NewImage.PollId.S, "poll|"),
+			VotedAt:  voteCountedDetail.DynamoDb.NewImage.UpdatedAt.S,
+			Votes:    votes,
+		},
 	})
 	if err != nil {
 		log.Printf("Error: %s\n", err)
@@ -99,7 +116,7 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 	pollId := pieces[1]
 
 	_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
-		Topic:       aws.String(pollId),
+		Topic:       aws.String(fmt.Sprintf("poll/%s", pollId)),
 		ContentType: aws.String("application/json"),
 		Payload:     payload,
 	})

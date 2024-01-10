@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="510f821b-a6a3-43f0-8f8a-06e8076d0217" name="Changes" comment="" />
+    <list default="true" id="510f821b-a6a3-43f0-8f8a-06e8076d0217" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote-count-publisher/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-count-publisher/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote-result-publisher/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-result-publisher/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vote/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../frontend/plugins/mqtt.client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/plugins/mqtt.client.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

@@ -48,8 +48,27 @@ type DdbVote struct {
 	VoteId    string `dynamodbav:"VoteId"`
 }
 
-func handleError(ctx context.Context, err error, requestId string, ebClient *eventbridge.Client) {
+type VoteFailedDetail = struct {
+	RequestId string `json:"requestId"`
+	Error     string `json:"error"`
+	PollId    string `json:"pollId"`
+	OptionId  string `json:"optionId"`
+}
+
+func handleFailure(ctx context.Context, err error, messageBody MessageBody, ebClient *eventbridge.Client) {
 	log.Printf("Error: %s\n", err)
+
+	detail := VoteFailedDetail{
+		RequestId: messageBody.RequestId,
+		Error:     err.Error(),
+		PollId:    messageBody.PollId,
+		OptionId:  messageBody.OptionId,
+	}
+	detailJson, err := json.Marshal(detail)
+	if err != nil {
+		log.Printf("Error: %s\n", err)
+		return
+	}
 
 	input := &eventbridge.PutEventsInput{
 		Entries: []ebTypes.PutEventsRequestEntry{
@@ -57,7 +76,7 @@ func handleError(ctx context.Context, err error, requestId string, ebClient *eve
 				EventBusName: aws.String(os.Getenv("EVENT_BUS_NAME")),
 				Source:       aws.String("pseudopoll.vote-queue"),
 				DetailType:   aws.String("VoteFailed"),
-				Detail:       aws.String(fmt.Sprintf(`{"requestId": "%s", "error": "%s"}`, requestId, err.Error())),
+				Detail:       aws.String(string(detailJson)),
 			},
 		},
 	}
@@ -65,6 +84,7 @@ func handleError(ctx context.Context, err error, requestId string, ebClient *eve
 	_, err = ebClient.PutEvents(ctx, input)
 	if err != nil {
 		log.Printf("Error: %s\n", err)
+		return
 	}
 }
 
@@ -97,7 +117,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 
 		requestTimeEpoch, err := strconv.ParseInt(messageBody.RequestTimeEpoch, 10, 64)
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 		requestTime := time.UnixMilli(requestTimeEpoch)
@@ -114,30 +134,40 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			},
 		})
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 
 		err = attributevalue.UnmarshalMap(getPoll.Item, &ddbPoll)
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 
 		if ddbPoll.IsArchived {
-			handleError(ctx, errors.New(fmt.Sprintf("poll %s is archived", ddbPoll.PkPollId)), messageBody.RequestId, ebClient)
+			handleFailure(
+				ctx,
+				errors.New(fmt.Sprintf("poll %s is archived", ddbPoll.PkPollId)),
+				messageBody,
+				ebClient,
+			)
 			continue
 		}
 
 		createdAt, err := time.Parse(time.RFC3339, ddbPoll.CreatedAt)
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 
 		expirationTime := createdAt.Add(time.Duration(ddbPoll.Duration) * time.Second)
 		if requestTime.After(expirationTime) {
-			handleError(ctx, errors.New(fmt.Sprintf("poll %s has expired", ddbPoll.PkPollId)), messageBody.RequestId, ebClient)
+			handleFailure(
+				ctx,
+				errors.New(fmt.Sprintf("poll %s has expired", ddbPoll.PkPollId)),
+				messageBody,
+				ebClient,
+			)
 			continue
 		}
 
@@ -148,7 +178,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			VoteId:    messageBody.RequestId,
 		})
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 
@@ -199,7 +229,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			},
 		})
 		if err != nil {
-			handleError(ctx, err, messageBody.RequestId, ebClient)
+			handleFailure(ctx, err, messageBody, ebClient)
 			continue
 		}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -43,7 +44,12 @@ type PollModifiedDetail struct {
 	} `'json:"dynamodb"`
 }
 
-type PollModifiedPayload struct {
+type Payload struct {
+	Type string      `'json:"type"`
+	Data interface{} `'json:"data"`
+}
+
+type PollModifiedPayloadData struct {
 	PollId     string `'json:"pollId"`
 	UserId     string `'json:"userId"`
 	Prompt     string `'json:"prompt"`
@@ -92,13 +98,16 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		return
 	}
 
-	payload, err := json.Marshal(PollModifiedPayload{
-		PollId:     pollModifiedDetail.DynamoDb.NewImage.PollId.S,
-		UserId:     pollModifiedDetail.DynamoDb.NewImage.UserId.S,
-		Prompt:     pollModifiedDetail.DynamoDb.NewImage.Prompt.S,
-		CreatedAt:  pollModifiedDetail.DynamoDb.NewImage.CreatedAt.S,
-		Duration:   duration,
-		IsArchived: pollModifiedDetail.DynamoDb.NewImage.IsArchived.BOOL,
+	payload, err := json.Marshal(Payload{
+		Type: "pollModified",
+		Data: PollModifiedPayloadData{
+			PollId:     pollModifiedDetail.DynamoDb.NewImage.PollId.S,
+			UserId:     pollModifiedDetail.DynamoDb.NewImage.UserId.S,
+			Prompt:     pollModifiedDetail.DynamoDb.NewImage.Prompt.S,
+			CreatedAt:  pollModifiedDetail.DynamoDb.NewImage.CreatedAt.S,
+			Duration:   duration,
+			IsArchived: pollModifiedDetail.DynamoDb.NewImage.IsArchived.BOOL,
+		},
 	})
 	if err != nil {
 		log.Printf("Error: %s\n", err)
@@ -113,7 +122,7 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 	pollId := pieces[1]
 
 	_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
-		Topic:       aws.String(pollId),
+		Topic:       aws.String(fmt.Sprintf("poll/%s", pollId)),
 		ContentType: aws.String("application/json"),
 		Payload:     payload,
 	})
