@@ -2,8 +2,6 @@ import {
   updatePollDurationBodySchema,
   updatePollDurationRouterParamsSchema,
 } from "~/schemas/polls";
-import { getServerAuthSession } from "~/server/auth";
-import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const session = await getServerAuthSession(event);
@@ -38,7 +36,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const result = await fetch.PATCH("/polls/{pollId}", {
+  const result = await openapi.PATCH("/polls/{pollId}", {
     params: { path: routerParams.data },
     headers: { Authorization: `Bearer ${session.user.idToken}` },
     body: body.data,

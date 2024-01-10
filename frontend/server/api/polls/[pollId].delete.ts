@@ -2,8 +2,6 @@ import {
   archivePollBodySchema,
   archivePollRouterParamsSchema,
 } from "~/schemas/polls";
-import { getServerAuthSession } from "~/server/auth";
-import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const session = await getServerAuthSession(event);
@@ -35,7 +33,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const result = await fetch.DELETE("/polls/{pollId}", {
+  const result = await openapi.DELETE("/polls/{pollId}", {
     params: { path: routerParams.data },
     headers: { Authorization: `Bearer ${session.user.idToken}` },
     body: body.data,

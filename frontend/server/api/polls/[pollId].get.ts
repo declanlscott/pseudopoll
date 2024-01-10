@@ -1,6 +1,4 @@
 import { getPollRouterParamsSchema } from "~/schemas/polls";
-import { getServerAuthSession } from "~/server/auth";
-import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -18,7 +16,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const session = await getServerAuthSession(event);
-  const result = await fetch.GET(
+  const result = await openapi.GET(
     session ? "/polls/{pollId}" : "/public/polls/{pollId}",
     {
       params: {

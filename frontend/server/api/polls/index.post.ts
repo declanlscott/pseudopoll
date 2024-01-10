@@ -1,6 +1,4 @@
 import { createPollBodySchema } from "~/schemas/polls";
-import { getServerAuthSession } from "~/server/auth";
-import fetch from "~/server/fetch";
 
 export default defineEventHandler(async (event) => {
   const session = await getServerAuthSession(event);
@@ -23,7 +21,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const poll = await fetch.POST("/polls", {
+  const poll = await openapi.POST("/polls", {
     headers: { Authorization: `Bearer ${session.user.idToken}` },
     body: body.data,
   });
