@@ -2,7 +2,7 @@ import { createPollBodySchema } from "~/schemas/polls";
 
 // eslint-disable-next-line import/order
 import type { z } from "zod";
-import type { Poll } from "~/openapi/types";
+import type { Poll } from "~/types";
 
 export default function () {
   const config = useRuntimeConfig();

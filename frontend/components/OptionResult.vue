@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-import type { paths } from "~/openapi/types/generated";
+import type { Poll } from "~/types";
 
-const { option, totalVotes } = defineProps<{
-  option: paths["/polls/{pollId}"]["get"]["responses"]["200"]["content"]["application/json"]["options"][number];
+const props = defineProps<{
+  option: Poll["options"][number];
   totalVotes: number;
 }>();
+const { option, totalVotes } = toRefs(props);
 
 const percentage = computed(() => {
-  if (totalVotes === 0) {
+  if (totalVotes.value === 0) {
     return "0%";
   }
 
-  return `${Math.floor((option.votes / totalVotes) * 100)}%`;
+  return `${Math.floor((option.value.votes / totalVotes.value) * 100)}%`;
 });
 </script>
 
@@ -37,7 +38,7 @@ const percentage = computed(() => {
     <div
       :class="
         cn(
-          'percentage-bar absolute left-0 top-0 -z-10 h-full rounded-lg transition duration-300 ease-in-out',
+          'percentage-bar absolute left-0 top-0 -z-10 h-full rounded-lg transition-all duration-300 ease-in-out',
           option.isMyVote
             ? 'bg-primary-400/25'
             : 'bg-gray-100 dark:bg-gray-800',

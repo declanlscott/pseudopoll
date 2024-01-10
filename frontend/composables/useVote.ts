@@ -1,4 +1,4 @@
-import type { Poll } from "~/openapi/types";
+import type { Poll } from "~/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
   const { queryKey } = useQueryOptionsFactory().poll({ pollId });
@@ -50,7 +50,7 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
       }
     },
     onSuccess: async ({ requestId }) => {
-      await $mqtt.subscribeAsync(`vote|${requestId}`, {
+      await $mqtt.subscribeAsync(`vote/${requestId}`, {
         qos: 1,
       });
     },

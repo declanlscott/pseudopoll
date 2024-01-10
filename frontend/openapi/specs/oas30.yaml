@@ -1,7 +1,7 @@
 openapi: "3.0.1"
 info:
   title: "pseudopoll-rest-api"
-  version: "2024-01-03T18:41:13Z"
+  version: "2024-01-09T13:36:55Z"
 servers:
 - url: "https://api.pseudopoll.com"
 paths:
@@ -446,6 +446,12 @@ components:
         authorizerCredentials: "arn:aws:iam::981543223421:role/api_gateway_authorizer_invocation_role"
         authorizerResultTtlInSeconds: 0
 x-amazon-apigateway-gateway-responses:
+  DEFAULT_4XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
+      gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
   DEFAULT_5XX:
     responseParameters:
       gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
@@ -454,12 +460,6 @@ x-amazon-apigateway-gateway-responses:
       gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     responseTemplates:
       application/json: "{\"message\":$context.error.messageString}"
-  DEFAULT_4XX:
-    responseParameters:
-      gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
-      gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
-      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
 x-amazon-apigateway-request-validators:
   archive-poll-validator:
     validateRequestParameters: false

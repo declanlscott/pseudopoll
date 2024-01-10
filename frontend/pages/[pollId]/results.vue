@@ -6,24 +6,30 @@ const { session } = useAuth();
 const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
-  query: { data: poll, suspense },
+  query: { data, suspense },
   timeLeft,
   totalVotes,
   lastActivity,
 } = usePoll({ pollId });
-await suspense();
+onServerPrefetch(async () => await suspense());
+const poll = computed(() => data.value);
 
 const {
   mutate: archive,
-  isPending: isArchivePending,
-  error: archiveError,
+  isPending: isArchivePendingRef,
+  error: archiveErrorRef,
 } = useArchive({ pollId });
+const isArchivePending = computed(() => isArchivePendingRef.value);
+const archiveError = computed(() => archiveErrorRef.value);
 
 const {
   mutate: updateDuration,
-  isPending: durationIsPending,
-  error: durationError,
+  isPending: durationIsPendingRef,
+  error: durationErrorRef,
 } = useDuration({ pollId });
+
+const durationIsPending = computed(() => durationIsPendingRef.value);
+const durationError = computed(() => durationErrorRef.value);
 </script>
 
 <template>

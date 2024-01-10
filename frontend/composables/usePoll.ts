@@ -1,6 +1,6 @@
 import { formatDistance } from "date-fns";
 
-import type { Poll } from "~/openapi/types";
+import type { Poll } from "~/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
   const { poll } = useQueryOptionsFactory();
@@ -24,9 +24,13 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
     timeLeft.value = Math.floor((expiresAt - now) / 1000);
   }
 
+  const { $mqtt } = useNuxtApp();
+
   onMounted(() => {
     calculateTimeLeft();
     timer = setInterval(calculateTimeLeft, 1000);
+
+    $mqtt.subscribe(`poll/${pollId}`);
   });
 
   onBeforeUnmount(() => {
@@ -34,6 +38,8 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
       clearTimeout(timer);
       timer = null;
     }
+
+    $mqtt.unsubscribe(`poll/${pollId}`);
   });
 
   const totalVotes = computed(() => {

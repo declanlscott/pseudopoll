@@ -1,4 +1,4 @@
-import type { Poll } from "~/openapi/types";
+import type { Poll } from "~/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
   const { queryKey } = useQueryOptionsFactory().poll({ pollId });

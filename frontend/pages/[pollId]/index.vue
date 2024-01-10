@@ -10,16 +10,19 @@ import type { z } from "zod";
 const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
-  query: { data: poll, suspense },
+  query: { data, suspense },
   timeLeft,
 } = usePoll({ pollId });
-await suspense();
+onServerPrefetch(async () => await suspense());
+const poll = computed(() => data.value);
 
 const {
   mutate: vote,
-  isPending: voteIsPending,
-  error: voteError,
+  isPending: voteIsPendingRef,
+  error: voteErrorRef,
 } = useVote({ pollId });
+const voteIsPending = computed(() => voteIsPendingRef.value);
+const voteError = computed(() => voteErrorRef.value);
 
 const config = useRuntimeConfig();
 const schema = voteRouterParamsSchema(config.public);

@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/vue-query";
 
-import type { Poll } from "~/openapi/types";
+import type { Poll } from "~/types";
 
 export default function () {
   const headers = useRequestHeaders();

@@ -18,9 +18,11 @@ const state = ref<Schema>({
 });
 
 const {
-  mutation: { mutate: create, isPending, error },
+  mutation: { mutate: create, isPending: isPendingRef, error: errorRef },
   durations,
 } = useCreate();
+const isPending = computed(() => isPendingRef.value);
+const error = computed(() => errorRef.value);
 
 const { push } = useRouter();
 
