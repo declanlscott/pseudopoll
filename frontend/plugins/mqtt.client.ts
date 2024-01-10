@@ -23,33 +23,21 @@ export default defineNuxtPlugin(() => {
     reconnectPeriod: 0,
   });
 
-  client.on("connect", (packet) => {
-    console.log(
-      "MQTT client connected",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-      packet,
-    );
+  client.on("connect", () => {
+    log("MQTT client connected");
   });
 
   client.on("error", (error) => {
-    console.error(
-      "MQTT client error",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-      error,
-    );
+    log("MQTT client error", error);
   });
 
   client.on("message", (fullTopic, payloadBuffer) => {
-    console.log("topic", fullTopic);
+    log("message topic", undefined, fullTopic);
 
     const payload = JSON.parse(
       new TextDecoder("utf8").decode(new Uint8Array(payloadBuffer)),
     ) as Payload;
-    console.log("payload", payload);
+    log("message payload", undefined, payload);
 
     const segments = fullTopic.split("/");
     const topic = segments[0];
@@ -94,8 +82,6 @@ export default defineNuxtPlugin(() => {
               }),
             };
           });
-
-          break;
         }
 
         if (payload.type === "pollModified") {
@@ -108,8 +94,6 @@ export default defineNuxtPlugin(() => {
 
             return { ...poll, ...payload.data };
           });
-
-          break;
         }
 
         break;
@@ -141,62 +125,33 @@ export default defineNuxtPlugin(() => {
           });
 
           client.unsubscribe(`vote/${topicId}`);
-
-          break;
         }
 
         break;
       default:
-        console.log("Unknown topic", topic);
+        log("Unknown topic", undefined, topic);
     }
   });
 
-  client.on("disconnect", (packet) => {
-    console.log(
-      "MQTT client disconnected",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-      packet,
-    );
+  client.on("disconnect", () => {
+    log("MQTT client disconnected");
   });
 
   client.on("reconnect", () => {
-    console.log(
-      "MQTT client reconnecting",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-    );
+    log("MQTT client reconnecting");
   });
 
   client.on("close", () => {
-    console.log(
-      "MQTT client closed",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-    );
-
+    log("MQTT client closed");
     client.reconnect();
   });
 
   client.on("end", () => {
-    console.log(
-      "MQTT client ended",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-    );
+    log("MQTT client ended");
   });
 
   client.on("offline", () => {
-    console.log(
-      "MQTT client offline",
-      new Date().toLocaleString("en-US", {
-        timeZone: "America/Chicago",
-      }),
-    );
+    log("MQTT client offline");
   });
 
   return {
@@ -205,3 +160,16 @@ export default defineNuxtPlugin(() => {
     },
   };
 });
+
+function log(message: string, error?: Error, ...args: unknown[]) {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
+  if (error) {
+    console.error(message, args);
+    return;
+  }
+
+  console.log(message, args);
+}
