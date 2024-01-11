@@ -55,6 +55,10 @@ type VoteFailedDetail = struct {
 	OptionId  string `json:"optionId"`
 }
 
+const (
+	RFC3339Milli = "2006-01-02T15:04:05.999Z07:00"
+)
+
 func handleFailure(ctx context.Context, err error, messageBody MessageBody, ebClient *eventbridge.Client) {
 	log.Printf("Error: %s\n", err)
 
@@ -154,7 +158,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 			continue
 		}
 
-		createdAt, err := time.Parse(time.RFC3339, ddbPoll.CreatedAt)
+		createdAt, err := time.Parse(RFC3339Milli, ddbPoll.CreatedAt)
 		if err != nil {
 			handleFailure(ctx, err, messageBody, ebClient)
 			continue
@@ -221,7 +225,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 								Value: "1",
 							},
 							":updatedAt": &ddbTypes.AttributeValueMemberS{
-								Value: requestTime.Format(time.RFC3339),
+								Value: requestTime.Format(RFC3339Milli),
 							},
 						},
 					},

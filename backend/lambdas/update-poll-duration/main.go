@@ -40,6 +40,10 @@ type Error struct {
 	Cause   string `json:"cause"`
 }
 
+const (
+	RFC3339Milli = "2006-01-02T15:04:05.999Z07:00"
+)
+
 func formatError(msg string, err error) string {
 	responseBody, _ := json.Marshal(Error{
 		Message: msg,
@@ -138,7 +142,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		), nil
 	}
 
-	createdAt, err := time.Parse(time.RFC3339, ddbPoll.CreatedAt)
+	createdAt, err := time.Parse(RFC3339Milli, ddbPoll.CreatedAt)
 	if err != nil {
 		return logAndReturn(
 			events.APIGatewayProxyResponse{

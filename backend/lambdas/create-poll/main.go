@@ -77,6 +77,10 @@ type Error struct {
 	Cause   string `json:"cause"`
 }
 
+const (
+	RFC3339Milli = "2006-01-02T15:04:05.999Z07:00"
+)
+
 func getNanoIdOptions() (NanoIdOptions, error) {
 	alphabet := os.Getenv("NANOID_ALPHABET")
 	length, err := strconv.Atoi(os.Getenv("NANOID_LENGTH"))
@@ -120,7 +124,7 @@ func stripPrefix(s string, prefix string) string {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	currentTime := time.Now().UTC().Format(time.RFC3339)
+	currentTime := time.Now().UTC().Format(RFC3339Milli)
 
 	nanoIdOptions, err := getNanoIdOptions()
 	if err != nil {
