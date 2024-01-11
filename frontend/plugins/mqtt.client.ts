@@ -39,9 +39,7 @@ export default defineNuxtPlugin(() => {
     ) as Payload;
     log("message payload", undefined, payload);
 
-    const segments = fullTopic.split("/");
-    const topic = segments[0];
-    const topicId = segments[1];
+    const [topic, topicId] = fullTopic.split("/");
     switch (topic) {
       case "poll":
         if (payload.type === "voteCounted") {
@@ -67,19 +65,21 @@ export default defineNuxtPlugin(() => {
               return poll;
             }
 
+            const options = poll.options.map((option) => {
+              if (option.optionId === payload.data.optionId) {
+                return {
+                  ...option,
+                  votes: payload.data.votes,
+                  updatedAt: payload.data.updatedAt,
+                };
+              }
+
+              return option;
+            });
+
             return {
               ...poll,
-              options: poll.options.map((option) => {
-                if (option.optionId === payload.data.optionId) {
-                  return {
-                    ...option,
-                    votes: payload.data.votes,
-                    updatedAt: payload.data.updatedAt,
-                  };
-                }
-
-                return option;
-              }),
+              options,
             };
           });
         }
@@ -167,9 +167,19 @@ function log(message: string, error?: Error, ...args: unknown[]) {
   }
 
   if (error) {
-    console.error(message, args);
+    if (args.length) {
+      console.error(message, args, error);
+      return;
+    }
+
+    console.error(message, error);
     return;
   }
 
-  console.log(message, args);
+  if (args.length) {
+    console.log(message, args);
+    return;
+  }
+
+  console.log(message);
 }

@@ -70,9 +70,7 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
     return `Last activity ${formatDistance(
       new Date(lastUpdatedAt),
       new Date(),
-      {
-        addSuffix: true,
-      },
+      { addSuffix: true },
     )}`;
   });
 

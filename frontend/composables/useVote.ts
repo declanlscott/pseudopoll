@@ -26,18 +26,24 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
       const previousPoll = queryClient.getQueryData<Poll>(queryKey);
 
       // Optimistically update to the new value
-      queryClient.setQueryData<Poll>(queryKey, (poll) =>
-        poll
-          ? {
-              ...poll,
-              options: poll.options.map((option) =>
-                option.optionId === optionId
-                  ? { ...option, votes: option.votes + 1, isMyVote: true }
-                  : option,
-              ),
-            }
-          : undefined,
-      );
+      queryClient.setQueryData<Poll>(queryKey, (poll) => {
+        if (!poll) {
+          return undefined;
+        }
+
+        const options = poll.options.map((option) => {
+          if (option.optionId === optionId) {
+            return { ...option, votes: option.votes + 1, isMyVote: true };
+          }
+
+          return option;
+        });
+
+        return {
+          ...poll,
+          options,
+        };
+      });
 
       // Return a context object with the snapshotted value
       return { previousPoll };
