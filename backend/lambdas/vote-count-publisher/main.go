@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -94,11 +93,13 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		return
 	}
 
+	pollId := stripPrefix(voteCountedDetail.DynamoDb.NewImage.PollId.S, "poll|")
+
 	payload, err := json.Marshal(Payload{
 		Type: "voteCounted",
 		Data: VoteCountedPayloadData{
 			OptionId: stripPrefix(voteCountedDetail.DynamoDb.NewImage.OptionId.S, "option|"),
-			PollId:   stripPrefix(voteCountedDetail.DynamoDb.NewImage.PollId.S, "poll|"),
+			PollId:   pollId,
 			VotedAt:  voteCountedDetail.DynamoDb.NewImage.UpdatedAt.S,
 			Votes:    votes,
 		},
@@ -107,13 +108,6 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		log.Printf("Error: %s\n", err)
 		return
 	}
-
-	pieces := strings.Split(voteCountedDetail.DynamoDb.NewImage.PollId.S, "poll|")
-	if len(pieces) != 2 {
-		log.Printf("Error: %s\n", err)
-		return
-	}
-	pollId := pieces[1]
 
 	_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
 		Topic:       aws.String(fmt.Sprintf("poll/%s", pollId)),
@@ -124,7 +118,6 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		log.Printf("Error: %s\n", err)
 		return
 	}
-
 }
 
 func main() {
