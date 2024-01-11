@@ -7,9 +7,8 @@ const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
   query: { data, suspense },
-  timeLeft,
+  time,
   totalVotes,
-  lastActivity,
 } = usePoll({ pollId });
 onServerPrefetch(async () => await suspense());
 const poll = computed(() => data.value);
@@ -35,22 +34,22 @@ const durationError = computed(() => durationErrorRef.value);
 <template>
   <div class="flex justify-center">
     <div v-if="poll" class="flex w-2/3 flex-col gap-6">
-      <UMeter :value="timeLeft" :max="poll.duration">
+      <UMeter :value="time.left" :max="poll.duration">
         <template #indicator>
           <span
-            v-if="timeLeft > 0"
+            v-if="time.left > 0"
             class="text-right text-sm text-gray-500 dark:text-gray-400"
           >
             {{
               formatDuration(
-                intervalToDuration({ start: 0, end: timeLeft * 1000 }),
+                intervalToDuration({ start: 0, end: time.left * 1000 }),
               )
             }}
             left
           </span>
 
           <span
-            v-else-if="timeLeft < 0"
+            v-else-if="time.left < 0"
             class="text-right text-sm text-gray-500 dark:text-gray-400"
           >
             Ended
@@ -79,7 +78,7 @@ const durationError = computed(() => durationErrorRef.value);
           v-if="session && session.user.id === poll.userId"
           class="flex gap-2"
         >
-          <UTooltip v-if="timeLeft > 0" text="Close now">
+          <UTooltip v-if="time.left > 0" text="Close now">
             <UButton
               icon="i-heroicons-clock"
               color="gray"
@@ -118,12 +117,12 @@ const durationError = computed(() => durationErrorRef.value);
           <span>•</span>
 
           <span>
-            {{ lastActivity }}
+            {{ time.lastActivity }}
           </span>
         </div>
 
         <UButton
-          v-if="timeLeft > 0"
+          v-if="time.left > 0"
           color="gray"
           size="lg"
           icon="i-heroicons-document-check"

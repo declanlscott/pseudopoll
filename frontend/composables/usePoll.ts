@@ -7,28 +7,44 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
   const query = useQuery(poll({ pollId }));
 
   let timer: ReturnType<typeof setTimeout> | null = null;
-  const timeLeft = ref(0);
+  const time = reactive({
+    left: 0,
+    lastActivity: "",
+  });
 
-  function calculateTimeLeft() {
+  function calculateTime() {
     const poll = query.data.value;
 
     if (!poll) {
-      timeLeft.value = 0;
+      time.left = 0;
+      time.lastActivity = "";
       return;
     }
 
     const now = Date.now();
     const createdAt = new Date(poll.createdAt).getTime();
     const expiresAt = createdAt + poll.duration * 1000;
+    time.left = Math.floor((expiresAt - now) / 1000);
 
-    timeLeft.value = Math.floor((expiresAt - now) / 1000);
+    const lastUpdatedAt = poll.options.reduce((lastUpdatedAt, option) => {
+      if (option.updatedAt > lastUpdatedAt) {
+        return option.updatedAt;
+      }
+
+      return lastUpdatedAt;
+    }, poll.createdAt);
+    time.lastActivity = `Last activity ${formatDistance(
+      new Date(lastUpdatedAt),
+      new Date(),
+      { addSuffix: true },
+    )}`;
   }
 
   const { $mqtt } = useNuxtApp();
 
   onMounted(() => {
-    calculateTimeLeft();
-    timer = setInterval(calculateTimeLeft, 1000);
+    calculateTime();
+    timer = setInterval(calculateTime, 1000);
 
     $mqtt.subscribe(`poll/${pollId}`);
   });
@@ -52,27 +68,5 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
     return poll.options.reduce((acc, option) => acc + option.votes, 0);
   });
 
-  const lastActivity = computed(() => {
-    const poll = query.data.value;
-
-    if (!poll) {
-      return "";
-    }
-
-    const lastUpdatedAt = poll.options.reduce((lastUpdatedAt, option) => {
-      if (option.updatedAt > lastUpdatedAt) {
-        return option.updatedAt;
-      }
-
-      return lastUpdatedAt;
-    }, poll.createdAt);
-
-    return `Last activity ${formatDistance(
-      new Date(lastUpdatedAt),
-      new Date(),
-      { addSuffix: true },
-    )}`;
-  });
-
-  return { query, timeLeft, totalVotes, lastActivity };
+  return { query, time, totalVotes };
 }

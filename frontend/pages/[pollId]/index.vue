@@ -11,7 +11,7 @@ const { params } = useRoute();
 const pollId = params.pollId as string;
 const {
   query: { data, suspense },
-  timeLeft,
+  time,
 } = usePoll({ pollId });
 onServerPrefetch(async () => await suspense());
 const poll = computed(() => data.value);
@@ -49,22 +49,22 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
       class="flex w-2/3 flex-col gap-6"
       @submit="onSubmit"
     >
-      <UMeter :value="timeLeft" :max="poll.duration">
+      <UMeter :value="time.left" :max="poll.duration">
         <template #indicator>
           <span
-            v-if="timeLeft > 0"
+            v-if="time.left > 0"
             class="text-right text-sm text-gray-500 dark:text-gray-400"
           >
             {{
               formatDuration(
-                intervalToDuration({ start: 0, end: timeLeft * 1000 }),
+                intervalToDuration({ start: 0, end: time.left * 1000 }),
               )
             }}
             left
           </span>
 
           <span
-            v-else-if="timeLeft < 0"
+            v-else-if="time.left < 0"
             class="text-right text-sm text-gray-500 dark:text-gray-400"
           >
             Ended
@@ -105,13 +105,13 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                 'text-black dark:text-white',
             ),
           }"
-          :disabled="timeLeft <= 0"
+          :disabled="time.left <= 0"
         ></URadio>
       </div>
 
       <div class="flex flex-row-reverse gap-2">
         <UButton
-          v-if="timeLeft > 0"
+          v-if="time.left > 0"
           color="primary"
           size="lg"
           icon="i-heroicons-document-check"
