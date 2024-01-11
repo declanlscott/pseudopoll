@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,43 +18,51 @@ import (
 type DdbPoll struct {
 	PollId struct {
 		S string `json:"S"`
-	} `'json:"PK"`
+	} `json:"PK"`
 	UserId struct {
-		S string `'json:"S"`
-	} `'json:"GSI1PK"`
+		S string `json:"S"`
+	} `json:"GSI1PK"`
 	Prompt struct {
-		S string `'json:"S"`
-	} `'json:"Prompt"`
+		S string `json:"S"`
+	} `json:"Prompt"`
 	CreatedAt struct {
-		S string `'json:"S"`
-	} `'json:"CreatedAt"`
+		S string `json:"S"`
+	} `json:"CreatedAt"`
 	Duration struct {
-		N string `'json:"N"`
-	} `'json:"Duration"`
+		N string `json:"N"`
+	} `json:"Duration"`
 	IsArchived struct {
-		BOOL bool `'json:"BOOL"`
-	} `'json:"IsArchived"`
+		BOOL bool `json:"BOOL"`
+	} `json:"IsArchived"`
 }
 
 type PollModifiedDetail struct {
 	DynamoDb struct {
-		NewImage DdbPoll `'json:"NewImage"`
-		OldImage DdbPoll `'json:"OldImage"`
-	} `'json:"dynamodb"`
+		NewImage DdbPoll `json:"NewImage"`
+		OldImage DdbPoll `json:"OldImage"`
+	} `json:"dynamodb"`
 }
 
 type Payload struct {
-	Type string      `'json:"type"`
-	Data interface{} `'json:"data"`
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 type PollModifiedPayloadData struct {
-	PollId     string `'json:"pollId"`
-	UserId     string `'json:"userId"`
-	Prompt     string `'json:"prompt"`
-	CreatedAt  string `'json:"createdAt"`
-	Duration   int64  `'json:"duration"`
-	IsArchived bool   `'json:"isArchived"`
+	PollId     string `json:"pollId"`
+	UserId     string `json:"userId"`
+	Prompt     string `json:"prompt"`
+	CreatedAt  string `json:"createdAt"`
+	Duration   int64  `json:"duration"`
+	IsArchived bool   `json:"isArchived"`
+}
+
+func stripPrefix(s string, prefix string) string {
+	if len(s) > len(prefix) && s[0:len(prefix)] == prefix {
+		return s[len(prefix):]
+	}
+
+	return s
 }
 
 func handler(ctx context.Context, event events.CloudWatchEvent) {
@@ -79,18 +86,7 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		log.Printf("Error: %s\n", err)
 		return
 	}
-	log.Printf("Poll modified: %s\n", pollModifiedDetail.DynamoDb.NewImage.PollId.S)
-
-	if pollModifiedDetail.DynamoDb.NewImage.Duration == pollModifiedDetail.DynamoDb.OldImage.Duration {
-		log.Printf("Duration unchanged: poll %s\n", pollModifiedDetail.DynamoDb.NewImage.PollId.S)
-		return
-	}
-
-	log.Printf(
-		"Duration changed: poll %s with %s seconds\n",
-		pollModifiedDetail.DynamoDb.NewImage.PollId.S,
-		pollModifiedDetail.DynamoDb.NewImage.Duration.N,
-	)
+	log.Printf("Poll modified: %v\n", pollModifiedDetail.DynamoDb.NewImage.PollId)
 
 	duration, err := strconv.ParseInt(pollModifiedDetail.DynamoDb.NewImage.Duration.N, 10, 64)
 	if err != nil {
@@ -98,11 +94,13 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		return
 	}
 
+	pollId := stripPrefix(pollModifiedDetail.DynamoDb.NewImage.PollId.S, "poll|")
+
 	payload, err := json.Marshal(Payload{
 		Type: "pollModified",
 		Data: PollModifiedPayloadData{
-			PollId:     pollModifiedDetail.DynamoDb.NewImage.PollId.S,
-			UserId:     pollModifiedDetail.DynamoDb.NewImage.UserId.S,
+			PollId:     pollId,
+			UserId:     stripPrefix(pollModifiedDetail.DynamoDb.NewImage.UserId.S, "user|"),
 			Prompt:     pollModifiedDetail.DynamoDb.NewImage.Prompt.S,
 			CreatedAt:  pollModifiedDetail.DynamoDb.NewImage.CreatedAt.S,
 			Duration:   duration,
@@ -113,13 +111,6 @@ func handler(ctx context.Context, event events.CloudWatchEvent) {
 		log.Printf("Error: %s\n", err)
 		return
 	}
-
-	pieces := strings.Split(pollModifiedDetail.DynamoDb.NewImage.PollId.S, "poll|")
-	if len(pieces) != 2 {
-		log.Printf("Error: %s\n", err)
-		return
-	}
-	pollId := pieces[1]
 
 	_, err = iot.Publish(ctx, &iotdataplane.PublishInput{
 		Topic:       aws.String(fmt.Sprintf("poll/%s", pollId)),
