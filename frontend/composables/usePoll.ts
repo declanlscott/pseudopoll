@@ -10,6 +10,7 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
   const time = reactive({
     left: 0,
     lastActivity: "",
+    duration: 0,
   });
 
   function calculateTime() {
@@ -18,6 +19,7 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
     if (!poll) {
       time.left = 0;
       time.lastActivity = "";
+      time.duration = 0;
       return;
     }
 
@@ -38,6 +40,8 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
       new Date(),
       { addSuffix: true },
     )}`;
+
+    time.duration = poll.duration;
   }
 
   const { $mqtt } = useNuxtApp();

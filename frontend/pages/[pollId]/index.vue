@@ -49,7 +49,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
       class="flex w-2/3 flex-col gap-6"
       @submit="onSubmit"
     >
-      <UMeter :value="time.left" :max="poll.duration">
+      <UMeter :value="time.left" :max="time.duration">
         <template #indicator>
           <span
             v-if="time.left > 0"
@@ -70,7 +70,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
             Ended
             {{
               formatDistance(
-                new Date(poll.createdAt).getTime() + poll.duration * 1000,
+                new Date(poll.createdAt).getTime() + time.duration * 1000,
                 new Date(),
                 { addSuffix: true },
               )

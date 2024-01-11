@@ -34,7 +34,7 @@ const durationError = computed(() => durationErrorRef.value);
 <template>
   <div class="flex justify-center">
     <div v-if="poll" class="flex w-2/3 flex-col gap-6">
-      <UMeter :value="time.left" :max="poll.duration">
+      <UMeter :value="time.left" :max="time.duration">
         <template #indicator>
           <span
             v-if="time.left > 0"
@@ -55,7 +55,7 @@ const durationError = computed(() => durationErrorRef.value);
             Ended
             {{
               formatDistance(
-                new Date(poll.createdAt).getTime() + poll.duration * 1000,
+                new Date(poll.createdAt).getTime() + time.duration * 1000,
                 new Date(),
                 { addSuffix: true },
               )
