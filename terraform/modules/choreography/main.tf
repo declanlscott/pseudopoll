@@ -263,8 +263,8 @@ resource "aws_cloudwatch_event_target" "vote_counted" {
 }
 
 resource "aws_cloudwatch_event_rule" "poll_modified" {
-  name           = "pseudopoll-update-poll-duration-event-rule"
-  description    = "A rule that matches update poll duration events from the dynamodb stream pipe and sends them to the publisher microservice"
+  name           = "pseudopoll-poll-modified-event-rule"
+  description    = "A rule that matches poll modified events from the dynamodb stream pipe and sends them to the publisher microservice"
   event_bus_name = aws_cloudwatch_event_bus.event_bus.name
 
   event_pattern = jsonencode({
@@ -293,4 +293,11 @@ resource "aws_lambda_permission" "poll_modified" {
   principal     = "events.amazonaws.com"
 
   source_arn = aws_cloudwatch_event_rule.poll_modified.arn
+}
+
+resource "aws_cloudwatch_event_target" "poll_modified" {
+  rule           = aws_cloudwatch_event_rule.poll_modified.name
+  event_bus_name = aws_cloudwatch_event_bus.event_bus.name
+  target_id      = "pseudopoll-poll-modified-event-rule-target"
+  arn            = var.poll_modification_publisher_lambda_arn
 }
