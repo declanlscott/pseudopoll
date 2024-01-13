@@ -33,6 +33,11 @@ variable "update_poll_duration_model_name" {
   type        = string
 }
 
+variable "my_polls_model_name" {
+  description = "Name of the my polls model"
+  type        = string
+}
+
 variable "error_model_name" {
   description = "Name of the error model"
   type        = string

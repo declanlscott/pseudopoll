@@ -46,6 +46,7 @@ locals {
     aws_api_gateway_model.archive_poll,
     aws_api_gateway_model.update_poll_duration,
     aws_api_gateway_model.vote_accepted,
+    aws_api_gateway_model.my_polls,
     aws_api_gateway_model.error,
   ]))
   ddb_stream_pipe_event_source      = "pseudopoll.ddb-stream"
@@ -153,6 +154,18 @@ resource "aws_api_gateway_model" "vote_accepted" {
   schema = templatefile("./modules/templates/models/vote-accepted.json", {})
 }
 
+resource "aws_api_gateway_model" "my_polls" {
+  rest_api_id  = module.rest_api.id
+  name         = "MyPolls"
+  description  = "My polls schema"
+  content_type = "application/json"
+
+  schema = templatefile(
+    "./modules/templates/models/my-polls.json",
+    { nanoIdLength = var.nanoid_length }
+  )
+}
+
 resource "aws_api_gateway_model" "error" {
   rest_api_id  = module.rest_api.id
   name         = "Error"
@@ -228,6 +241,7 @@ module "poll_manager_microservice" {
   create_poll_model_name          = aws_api_gateway_model.create_poll.name
   archive_poll_model_name         = aws_api_gateway_model.archive_poll.name
   update_poll_duration_model_name = aws_api_gateway_model.update_poll_duration.name
+  my_polls_model_name             = aws_api_gateway_model.my_polls.name
   error_model_name                = aws_api_gateway_model.error.name
   parent_id                       = module.rest_api.root_resource_id
   custom_authorizer_id            = module.api_authorizer.id
