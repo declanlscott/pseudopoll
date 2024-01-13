@@ -50,7 +50,7 @@ variable "option_min_length" {
 variable "option_max_length" {
   type        = number
   description = "Maximum length of the option"
-  default     = 140
+  default     = 35
 }
 
 variable "min_options" {
