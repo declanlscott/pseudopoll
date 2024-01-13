@@ -51,10 +51,11 @@ const { signOut, status, session, signIn } = useAuth();
       </div>
 
       <UButton
-        v-if="status === 'unauthenticated'"
+        v-if="status !== 'authenticated'"
         icon="i-heroicons-arrow-right"
         trailing
-        @click="signIn()"
+        :loading="status === 'loading'"
+        @click="signIn('google')"
       >
         Sign in
       </UButton>

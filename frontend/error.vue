@@ -27,7 +27,7 @@ const { status, signIn } = useAuth();
               trailingIcon: 'i-heroicons-arrow-right',
               click: async () => {
                 await clearError();
-                await signIn();
+                await signIn('google');
               },
             },
           ]"
