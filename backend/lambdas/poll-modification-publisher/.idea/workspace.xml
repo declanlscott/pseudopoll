@@ -5,12 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="510f821b-a6a3-43f0-8f8a-06e8076d0217" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../create-poll/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../create-poll/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../update-poll-duration/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../update-poll-duration/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../vote-count-publisher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vote/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../vote/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../frontend/composables/usePoll.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../frontend/composables/usePoll.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
