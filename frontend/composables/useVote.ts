@@ -1,7 +1,8 @@
 import type { Poll } from "~/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
-  const { queryKey } = useQueryOptionsFactory().poll({ pollId });
+  const { poll } = useQueryOptionsFactory();
+  const { queryKey } = poll({ pollId });
 
   const queryClient = useQueryClient();
 
@@ -62,5 +63,5 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
     },
   });
 
-  return mutation;
+  return { mutation };
 }

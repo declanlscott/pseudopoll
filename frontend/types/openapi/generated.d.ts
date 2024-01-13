@@ -121,35 +121,6 @@ export interface paths {
       };
     };
   };
-  "/polls": {
-    post: {
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["CreatePoll"];
-        };
-      };
-      responses: {
-        /** @description 201 response */
-        201: {
-          content: {
-            "application/json": components["schemas"]["Poll"];
-          };
-        };
-        /** @description 400 response */
-        400: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-        /** @description 500 response */
-        500: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-      };
-    };
-  };
   "/public/polls/{pollId}": {
     get: {
       parameters: {
@@ -172,6 +143,57 @@ export interface paths {
         };
         /** @description 403 response */
         403: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 500 response */
+        500: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+      };
+    };
+  };
+  "/polls": {
+    get: {
+      responses: {
+        /** @description 200 response */
+        200: {
+          content: {
+            "application/json": components["schemas"]["MyPolls"];
+          };
+        };
+        /** @description 403 response */
+        403: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 500 response */
+        500: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+      };
+    };
+    post: {
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreatePoll"];
+        };
+      };
+      responses: {
+        /** @description 201 response */
+        201: {
+          content: {
+            "application/json": components["schemas"]["Poll"];
+          };
+        };
+        /** @description 400 response */
+        400: {
           content: {
             "application/json": components["schemas"]["Error"];
           };
@@ -264,6 +286,19 @@ export interface components {
     UpdatePollDuration: {
       duration: number;
     };
+    /** My Poll Schema */
+    MyPolls: {
+        pollId: string;
+        userId: string;
+        /** @description The poll prompt text */
+        prompt: string;
+        /** @description The time the poll was created */
+        createdAt: string;
+        /** @description The duration of the poll in seconds */
+        duration: number;
+        /** @description Whether the poll is archived */
+        isArchived: boolean;
+      }[];
   };
   responses: never;
   parameters: never;

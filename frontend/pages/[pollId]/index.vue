@@ -9,20 +9,10 @@ import type { z } from "zod";
 
 const { params } = useRoute();
 const pollId = params.pollId as string;
-const {
-  query: { data, suspense },
-  time,
-} = usePoll({ pollId });
-onServerPrefetch(async () => await suspense());
-const poll = computed(() => data.value);
+const { query, time } = usePoll({ pollId });
+onServerPrefetch(async () => await query.suspense());
 
-const {
-  mutate: vote,
-  isPending: voteIsPendingRef,
-  error: voteErrorRef,
-} = useVote({ pollId });
-const voteIsPending = computed(() => voteIsPendingRef.value);
-const voteError = computed(() => voteErrorRef.value);
+const { mutation: vote } = useVote({ pollId });
 
 const config = useRuntimeConfig();
 const schema = voteRouterParamsSchema(config.public);
@@ -30,23 +20,30 @@ type Schema = z.infer<typeof schema>;
 
 const state = ref<Partial<Schema>>({ pollId });
 
-const router = useRouter();
+const { push } = useRouter();
 
 function onSubmit(event: FormSubmitEvent<Schema>) {
-  vote(
+  vote.mutate(
     { optionId: event.data.optionId },
-    { onSuccess: () => router.push(`/${pollId}/results`) },
+    { onSuccess: () => push(`/${pollId}/results`) },
   );
 }
 </script>
 
 <template>
-  <div class="flex justify-center">
+  <div>
+    <div v-show="query.isLoading.value" class="flex justify-center">
+      <UIcon
+        name="i-heroicons-arrow-path-20-solid"
+        class="text-primary-500 dark:text-primary-400 h-16 w-16 animate-spin"
+      ></UIcon>
+    </div>
+
     <UForm
-      v-if="poll"
+      v-if="query.data.value"
       :state="state"
       :schema="schema"
-      class="flex w-2/3 flex-col gap-6"
+      class="flex flex-col gap-6"
       @submit="onSubmit"
     >
       <UMeter :value="time.left" :max="time.duration">
@@ -70,7 +67,8 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
             Ended
             {{
               formatDistance(
-                new Date(poll.createdAt).getTime() + time.duration * 1000,
+                new Date(query.data.value.createdAt).getTime() +
+                  time.duration * 1000,
                 new Date(),
                 { addSuffix: true },
               )
@@ -86,11 +84,11 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
         </template>
       </UMeter>
 
-      <h1 class="text-3xl font-bold">{{ poll.prompt }}</h1>
+      <h1 class="text-3xl font-bold">{{ query.data.value.prompt }}</h1>
 
       <div class="flex flex-col">
         <URadio
-          v-for="option of poll.options"
+          v-for="option of query.data.value.options"
           :key="option.optionId"
           v-model="state.optionId"
           :value="option.optionId"
@@ -116,9 +114,9 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
           size="lg"
           icon="i-heroicons-document-check"
           type="submit"
-          :loading="voteIsPending"
+          :loading="vote.isPending.value"
         >
-          {{ voteIsPending ? "Voting..." : "Vote" }}
+          {{ vote.isPending.value ? "Voting..." : "Vote" }}
         </UButton>
 
         <UButton
@@ -137,9 +135,9 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
       </div>
 
       <UAlert
-        v-if="voteError"
+        v-if="vote.error.value"
         title="Vote Error"
-        :description="voteError.message"
+        :description="vote.error.value.message"
         color="red"
         variant="outline"
       ></UAlert>

@@ -5,35 +5,23 @@ const { session } = useAuth();
 
 const { params } = useRoute();
 const pollId = params.pollId as string;
-const {
-  query: { data, suspense },
-  time,
-  totalVotes,
-} = usePoll({ pollId });
-onServerPrefetch(async () => await suspense());
-const poll = computed(() => data.value);
+const { query, time, totalVotes } = usePoll({ pollId });
+onServerPrefetch(async () => await query.suspense());
 
-const {
-  mutate: archive,
-  isPending: isArchivePendingRef,
-  error: archiveErrorRef,
-} = useArchive({ pollId });
-const isArchivePending = computed(() => isArchivePendingRef.value);
-const archiveError = computed(() => archiveErrorRef.value);
-
-const {
-  mutate: updateDuration,
-  isPending: durationIsPendingRef,
-  error: durationErrorRef,
-} = useDuration({ pollId });
-
-const durationIsPending = computed(() => durationIsPendingRef.value);
-const durationError = computed(() => durationErrorRef.value);
+const { mutation: archive } = useArchive({ pollId });
+const { mutation: duration } = useDuration({ pollId });
 </script>
 
 <template>
-  <div class="flex justify-center">
-    <div v-if="poll" class="flex w-2/3 flex-col gap-6">
+  <div>
+    <div v-show="query.isLoading.value" class="flex justify-center">
+      <UIcon
+        name="i-heroicons-arrow-path-20-solid"
+        class="text-primary-500 dark:text-primary-400 h-16 w-16 animate-spin"
+      ></UIcon>
+    </div>
+
+    <div v-if="query.data.value" class="flex flex-col gap-6">
       <UMeter :value="time.left" :max="time.duration">
         <template #indicator>
           <span
@@ -55,7 +43,8 @@ const durationError = computed(() => durationErrorRef.value);
             Ended
             {{
               formatDistance(
-                new Date(poll.createdAt).getTime() + time.duration * 1000,
+                new Date(query.data.value.createdAt).getTime() +
+                  time.duration * 1000,
                 new Date(),
                 { addSuffix: true },
               )
@@ -72,38 +61,42 @@ const durationError = computed(() => durationErrorRef.value);
       </UMeter>
 
       <div class="flex justify-between gap-6">
-        <h1 class="text-3xl font-bold">{{ poll.prompt }}</h1>
+        <h1 class="text-3xl font-bold">{{ query.data.value.prompt }}</h1>
 
         <div
-          v-if="session && session.user.id === poll.userId"
-          class="flex gap-2"
+          v-if="session && session.user.id === query.data.value.userId"
+          class="flex h-fit gap-2"
         >
           <UTooltip v-if="time.left > 0" text="Close now">
             <UButton
               icon="i-heroicons-clock"
               color="gray"
-              :loading="durationIsPending"
-              @click="() => updateDuration({ duration: -1 })"
+              :loading="duration.isPending.value"
+              @click="duration.mutate({ duration: -1 })"
             ></UButton>
           </UTooltip>
 
-          <UTooltip :text="poll.isArchived ? 'Unarchive' : 'Archive'">
+          <UTooltip
+            :text="query.data.value.isArchived ? 'Unarchive' : 'Archive'"
+          >
             <UButton
               :icon="
-                poll.isArchived
+                query.data.value.isArchived
                   ? 'i-heroicons-arrow-up-circle'
                   : 'i-heroicons-archive-box'
               "
               color="gray"
-              :loading="isArchivePending"
-              @click="() => archive({ isArchived: !poll?.isArchived })"
+              :loading="archive.isPending.value"
+              @click="
+                archive.mutate({ isArchived: !query.data.value?.isArchived })
+              "
             ></UButton>
           </UTooltip>
         </div>
       </div>
 
-      <ul class="flex flex-col gap-3">
-        <li v-for="option in poll.options" :key="option.optionId">
+      <ul class="grid grid-cols-1 gap-3">
+        <li v-for="option in query.data.value.options" :key="option.optionId">
           <OptionResult :option="option" :total-votes="totalVotes" />
         </li>
       </ul>
@@ -134,17 +127,17 @@ const durationError = computed(() => durationErrorRef.value);
       </div>
 
       <UAlert
-        v-if="archiveError"
+        v-if="archive.error.value"
         title="Archive Error"
-        :description="archiveError.message"
+        :description="archive.error.value.message"
         color="red"
         variant="outline"
       ></UAlert>
 
       <UAlert
-        v-if="durationError"
+        v-if="duration.error.value"
         title="Duration Error"
-        :description="durationError.message"
+        :description="duration.error.value.message"
         color="red"
         variant="outline"
       ></UAlert>

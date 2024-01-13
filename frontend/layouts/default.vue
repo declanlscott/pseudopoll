@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-const { signOut, status, session, signIn } = useAuth();
+const { status, session, signOut, signIn } = useAuth();
 </script>
 
 <template>
   <UContainer class="mb-32">
-    <div class="flex w-full items-center justify-between pb-12 pt-3">
+    <div class="flex w-full items-center justify-between pb-6 pt-3 sm:pb-12">
       <NuxtLink to="/" class="text-2xl">
         <span class="font-light text-gray-400">Pseudo</span>
         <span class="dark:text-primary-400 text-primary-500 font-bold"
@@ -60,6 +60,9 @@ const { signOut, status, session, signIn } = useAuth();
         Sign in
       </UButton>
     </div>
-    <slot></slot>
+
+    <main class="mx-auto max-w-xl gap-12 md:max-w-2xl lg:max-w-3xl">
+      <slot></slot>
+    </main>
   </UContainer>
 </template>

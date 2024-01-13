@@ -1,7 +1,8 @@
 import type { Poll } from "~/types";
 
 export default function ({ pollId }: { pollId: Poll["pollId"] }) {
-  const { queryKey } = useQueryOptionsFactory().poll({ pollId });
+  const { poll, myPolls } = useQueryOptionsFactory();
+  const { queryKey } = poll({ pollId });
 
   const queryClient = useQueryClient();
 
@@ -18,7 +19,9 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
         poll ? { ...poll, duration } : undefined,
       );
     },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: myPolls.queryKey }),
   });
 
-  return mutation;
+  return { mutation };
 }

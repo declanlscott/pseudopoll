@@ -11,7 +11,7 @@ export default function () {
 
   const queryClient = useQueryClient();
 
-  const { poll } = useQueryOptionsFactory();
+  const { poll, myPolls } = useQueryOptionsFactory();
 
   const mutation = useMutation({
     mutationFn: ({ poll }: { poll: CreatePollSchema }) =>
@@ -25,6 +25,8 @@ export default function () {
         poll({ pollId: data.pollId }).queryKey,
         data,
       ),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: myPolls.queryKey }),
   });
 
   const durations = [
