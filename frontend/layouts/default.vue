@@ -6,7 +6,9 @@ const { status, session, signOut, signIn } = useAuth();
   <UContainer class="mb-32">
     <div class="flex w-full items-center justify-between pb-6 pt-3 sm:pb-12">
       <NuxtLink to="/" class="text-2xl">
-        <span class="font-light text-gray-400">Pseudo</span>
+        <span class="dark:text-primary-50/75 text-primary-950/75 font-light"
+          >Pseudo</span
+        >
         <span class="dark:text-primary-400 text-primary-500 font-bold"
           >Poll</span
         >
@@ -39,11 +41,11 @@ const { status, session, signOut, signIn } = useAuth();
 
               <UButton
                 color="gray"
-                icon="i-heroicons-arrow-left"
+                icon="i-lucide-log-out"
                 class="w-fit self-center"
                 @click="signOut()"
               >
-                Sign out
+                Logout
               </UButton>
             </div>
           </template>
@@ -52,16 +54,24 @@ const { status, session, signOut, signIn } = useAuth();
 
       <UButton
         v-if="status !== 'authenticated'"
-        icon="i-heroicons-arrow-right"
-        trailing
+        variant="ghost"
+        color="gray"
+        icon="i-lucide-log-in"
         :loading="status === 'loading'"
         @click="signIn('google')"
       >
-        Sign in
+        Login
       </UButton>
     </div>
 
-    <main class="mx-auto max-w-xl gap-12 md:max-w-2xl lg:max-w-3xl">
+    <main
+      :class="
+        cn(
+          'mx-auto gap-12',
+          status === 'authenticated' && 'max-w-xl md:max-w-2xl lg:max-w-3xl',
+        )
+      "
+    >
       <slot></slot>
     </main>
   </UContainer>

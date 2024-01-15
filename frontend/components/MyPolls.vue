@@ -70,7 +70,7 @@ function formatDate(date: string) {
 
             <UIcon
               v-show="isArchived"
-              name="i-heroicons-archive-box"
+              name="i-lucide-archive"
               class="h-5 w-5 text-gray-500"
             ></UIcon>
           </div>

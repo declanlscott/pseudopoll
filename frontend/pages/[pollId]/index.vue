@@ -112,7 +112,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
           v-if="time.left > 0"
           color="primary"
           size="lg"
-          icon="i-heroicons-document-check"
+          icon="i-lucide-vote"
           type="submit"
           :loading="vote.isPending.value"
         >
@@ -122,13 +122,8 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
         <UButton
           color="gray"
           size="lg"
-          icon="i-heroicons-chart-bar"
+          icon="i-lucide-bar-chart-horizontal-big"
           :to="`/${pollId}/results`"
-          :ui="{
-            icon: {
-              base: 'rotate-90',
-            },
-          }"
         >
           Results
         </UButton>

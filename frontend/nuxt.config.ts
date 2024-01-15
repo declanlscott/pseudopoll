@@ -11,6 +11,9 @@ export default defineNuxtConfig({
     "@hebilicious/vue-query-nuxt",
     "@nuxt/ui",
   ],
+  ui: {
+    icons: ["lucide"],
+  },
   runtimeConfig: {
     authJs: {
       secret: env.NUXT_AUTH_JS_SECRET,

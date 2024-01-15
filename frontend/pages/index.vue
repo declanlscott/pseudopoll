@@ -3,9 +3,11 @@ const { status } = useAuth();
 </script>
 
 <template>
-  <div class="flex flex-col gap-12">
-    <CreatePollForm v-if="status === 'authenticated'"></CreatePollForm>
+  <div v-if="status === 'authenticated'" class="flex flex-col gap-12">
+    <CreatePollForm></CreatePollForm>
 
-    <MyPolls v-if="status === 'authenticated'"></MyPolls>
+    <MyPolls></MyPolls>
   </div>
+
+  <LandingPage v-else></LandingPage>
 </template>

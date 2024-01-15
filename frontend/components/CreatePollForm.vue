@@ -106,7 +106,7 @@ const placeholder =
                   :text="`Add option ${index + 2}`"
                 >
                   <UButton
-                    icon="i-heroicons-plus"
+                    icon="i-lucide-plus"
                     size="lg"
                     :class="
                       cn(
@@ -126,7 +126,7 @@ const placeholder =
                 >
                   <UButton
                     color="gray"
-                    icon="i-heroicons-minus"
+                    icon="i-lucide-minus"
                     size="lg"
                     class="rounded-l-none"
                     :disabled="mutation.isPending.value"
@@ -154,7 +154,7 @@ const placeholder =
       <UButton
         color="primary"
         size="lg"
-        icon="i-heroicons-pencil-square"
+        icon="i-lucide-edit"
         :loading="mutation.isPending.value"
         type="submit"
       >

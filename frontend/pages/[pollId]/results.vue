@@ -69,21 +69,19 @@ const { mutation: duration } = useDuration({ pollId });
         >
           <UTooltip v-if="time.left > 0" text="Close now">
             <UButton
-              icon="i-heroicons-clock"
+              icon="i-lucide-timer-off"
               color="gray"
               :loading="duration.isPending.value"
               @click="duration.mutate({ duration: -1 })"
             ></UButton>
           </UTooltip>
 
-          <UTooltip
-            :text="query.data.value.isArchived ? 'Unarchive' : 'Archive'"
-          >
+          <UTooltip :text="query.data.value.isArchived ? 'Restore' : 'Archive'">
             <UButton
               :icon="
                 query.data.value.isArchived
-                  ? 'i-heroicons-arrow-up-circle'
-                  : 'i-heroicons-archive-box'
+                  ? 'i-lucide-archive-restore'
+                  : 'i-lucide-archive'
               "
               color="gray"
               :loading="archive.isPending.value"
@@ -118,7 +116,7 @@ const { mutation: duration } = useDuration({ pollId });
           v-if="time.left > 0"
           color="gray"
           size="lg"
-          icon="i-heroicons-document-check"
+          icon="i-lucide-vote"
           type="button"
           :to="`/${pollId}`"
         >

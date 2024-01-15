@@ -29,3 +29,7 @@ type VoteTopicPayload =
   | { type: "voteFailed"; data: VoteFailedPayloadData };
 
 export type Payload = PollTopicPayload | VoteTopicPayload;
+
+export type Feature = {
+  title: string;
+};

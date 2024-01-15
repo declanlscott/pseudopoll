@@ -22,8 +22,8 @@ const { status, signIn } = useAuth();
           {
             variant: 'solid',
             color: 'primary',
-            label: 'Sign in',
-            trailingIcon: 'i-heroicons-arrow-right',
+            label: 'Login',
+            trailingIcon: 'i-lucide-log-in',
             click: async () => {
               await clearError();
               await signIn('google');
@@ -35,7 +35,7 @@ const { status, signIn } = useAuth();
         }`"
         :description="`${
           status === 'authenticated'
-            ? 'Your session has expired. Please sign in again to continue.'
+            ? 'Your session has expired. Please login again to continue.'
             : 'You must be signed in to view this page.'
         }`"
         :ui="{
