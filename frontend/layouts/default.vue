@@ -1,5 +1,11 @@
 <script lang="ts" setup>
 const { status, session, signOut, signIn } = useAuth();
+
+const router = useRouter();
+const isLandingPage = computed(
+  () =>
+    router.currentRoute.value.path === "/" && status.value !== "authenticated",
+);
 </script>
 
 <template>
@@ -67,8 +73,8 @@ const { status, session, signOut, signIn } = useAuth();
     <main
       :class="
         cn(
-          'mx-auto gap-12',
-          status === 'authenticated' && 'max-w-xl md:max-w-2xl lg:max-w-3xl',
+          'mx-auto max-w-xl gap-12 md:max-w-2xl lg:max-w-3xl',
+          isLandingPage && ' max-w-full md:max-w-full lg:max-w-full',
         )
       "
     >

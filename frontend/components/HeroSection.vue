@@ -3,7 +3,7 @@ const { signIn } = useAuth();
 </script>
 
 <template>
-  <div class="relative">
+  <section class="relative">
     <div class="absolute -z-10 h-full w-full">
       <div
         class="relative h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_5rem_3rem] shadow-white dark:shadow-[#121212]"
@@ -14,7 +14,7 @@ const { signIn } = useAuth();
       </div>
     </div>
 
-    <div class="flex flex-col items-center gap-16 rounded-full py-32">
+    <div class="flex flex-col items-center gap-12 rounded-full py-32">
       <h1
         class="text-center text-5xl font-bold sm:text-6xl md:text-7xl lg:text-8xl"
       >
@@ -27,19 +27,32 @@ const { signIn } = useAuth();
         </span>
       </h1>
 
-      <UButton
-        size="xl"
-        variant="solid"
-        color="gray"
-        icon="i-lucide-sparkle"
-        :ui="{ rounded: 'rounded-full' }"
-        class="transition-colors duration-75 dark:hover:bg-black"
-        @click="signIn('google')"
+      <p
+        class="dark:text-primary-50/75 text-primary-950/75 max-w-lg text-center text-lg font-semibold leading-relaxed"
       >
-        Get Started
-      </UButton>
+        Create and share polls with your friends, family, or followers in
+        seconds. Receive real-time results as the votes roll in.
+      </p>
+
+      <div class="group relative inline-flex">
+        <div
+          class="bg-primary absolute -inset-px rounded-full opacity-70 blur-lg transition-all duration-1000 group-hover:-inset-1 group-hover:opacity-100 group-hover:duration-200"
+        ></div>
+
+        <UButton
+          size="xl"
+          variant="solid"
+          color="gray"
+          icon="i-lucide-sparkle"
+          :ui="{ rounded: 'rounded-full' }"
+          class="relative transition-colors duration-75 dark:hover:bg-black"
+          @click="signIn('google')"
+        >
+          Get Started
+        </UButton>
+      </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
