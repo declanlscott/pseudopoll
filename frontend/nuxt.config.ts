@@ -22,6 +22,10 @@ export default defineNuxtConfig({
       clientId: env.NUXT_GOOGLE_CLIENT_ID,
       clientSecret: env.NUXT_GOOGLE_CLIENT_SECRET,
     },
+    whitelist: {
+      enabled: env.NUXT_WHITELIST_ENABLED,
+      users: env.NUXT_WHITELIST_USERS,
+    },
     public: {
       authJs: {
         // baseUrl: env.AUTH_ORIGIN,

@@ -37,6 +37,22 @@ export const authOptions: AuthConfig = {
     }),
   ],
   callbacks: {
+    // Whitelist users based on their oauth id, if enabled
+    signIn({ account }) {
+      if (!account) {
+        return false;
+      }
+
+      if (!runtimeConfig.whitelist.enabled) {
+        return true;
+      }
+
+      if (!runtimeConfig.whitelist.users.includes(account.providerAccountId)) {
+        return false;
+      }
+
+      return true;
+    },
     jwt({ account, user, token }) {
       // Initial sign in
       if (account && user) {
