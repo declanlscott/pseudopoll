@@ -1,14 +1,11 @@
 <script setup lang="ts">
-// eslint-disable-next-line import/order
-import { createPollBodySchema } from "~/schemas/polls";
-
 import type { FormSubmitEvent } from "#ui/types";
-import type { z } from "zod";
+import type { Output } from "valibot";
 
 const config = useRuntimeConfig();
 
-const schema = createPollBodySchema(config.public);
-type Schema = z.infer<typeof schema>;
+const schema = createPollSchema(config.public);
+type Schema = Output<typeof schema>;
 
 const state = ref<Schema>({
   prompt: "",

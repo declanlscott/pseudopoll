@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import { formatDistance, formatDuration, intervalToDuration } from "date-fns";
 
-// eslint-disable-next-line import/order
-import { voteRouterParamsSchema } from "~/schemas/polls";
-
 import type { FormSubmitEvent } from "#ui/types";
-import type { z } from "zod";
+import type { Output } from "valibot";
 
 const { params } = useRoute();
 const pollId = params.pollId as string;
@@ -15,8 +12,8 @@ onServerPrefetch(async () => await query.suspense());
 const { mutation: vote } = useVote({ pollId });
 
 const config = useRuntimeConfig();
-const schema = voteRouterParamsSchema(config.public);
-type Schema = z.infer<typeof schema>;
+const schema = voteParamsSchema(config.public);
+type Schema = Output<typeof schema>;
 
 const state = ref<Partial<Schema>>({ pollId });
 

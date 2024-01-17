@@ -1,4 +1,4 @@
-import { createPollBodySchema } from "~/schemas/polls";
+import { safeParse } from "valibot";
 
 export default defineEventHandler(async (event) => {
   const session = await getServerAuthSession(event);
@@ -10,20 +10,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig();
-  const body = await readValidatedBody(
-    event,
-    createPollBodySchema(config.public).safeParse,
+  const body = await readValidatedBody(event, (body) =>
+    safeParse(createPollSchema(config.public), body),
   );
   if (!body.success) {
     throw createError({
       statusCode: 400,
-      message: body.error.message,
+      message: body.issues.map((issue) => issue.message).join(". "),
     });
   }
 
   const poll = await openapi.POST("/polls", {
     headers: { Authorization: `Bearer ${session.user.idToken}` },
-    body: body.data,
+    body: body.output,
   });
 
   if (poll.error) {

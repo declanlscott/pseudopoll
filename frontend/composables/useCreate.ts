@@ -1,20 +1,15 @@
-import { createPollBodySchema } from "~/schemas/polls";
-
-// eslint-disable-next-line import/order
-import type { z } from "zod";
+import type { Output } from "valibot";
 import type { Poll } from "~/types";
 
 export default function () {
-  const config = useRuntimeConfig();
-  const createPollSchema = createPollBodySchema(config.public);
-  type CreatePollSchema = z.infer<typeof createPollSchema>;
-
   const queryClient = useQueryClient();
 
   const { poll, myPolls } = useQueryOptionsFactory();
 
+  const config = useRuntimeConfig();
+  const schema = createPollSchema(config.public);
   const mutation = useMutation({
-    mutationFn: ({ poll }: { poll: CreatePollSchema }) =>
+    mutationFn: ({ poll }: { poll: Output<typeof schema> }) =>
       $fetch("/api/polls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

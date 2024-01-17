@@ -1,17 +1,15 @@
-import { voteRouterParamsSchema } from "~/schemas/polls";
+import { safeParse } from "valibot";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-
-  const routerParams = await getValidatedRouterParams(
-    event,
-    voteRouterParamsSchema(config.public).safeParse,
+  const routerParams = await getValidatedRouterParams(event, (params) =>
+    safeParse(voteParamsSchema(config.public), params),
   );
 
   if (!routerParams.success) {
     throw createError({
       statusCode: 400,
-      message: routerParams.error.message,
+      message: routerParams.issues.map((issue) => issue.message).join(". "),
     });
   }
 
@@ -22,7 +20,7 @@ export default defineEventHandler(async (event) => {
       : "/public/polls/{pollId}/{optionId}",
     {
       params: {
-        path: routerParams.data,
+        path: routerParams.output,
       },
       headers: session
         ? { Authorization: `Bearer ${session.user.idToken}` }

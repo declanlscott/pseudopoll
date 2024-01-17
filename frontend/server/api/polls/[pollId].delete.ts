@@ -1,7 +1,4 @@
-import {
-  archivePollBodySchema,
-  archivePollRouterParamsSchema,
-} from "~/schemas/polls";
+import { safeParse } from "valibot";
 
 export default defineEventHandler(async (event) => {
   const session = await getServerAuthSession(event);
@@ -13,30 +10,30 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig();
-
-  const routerParams = await getValidatedRouterParams(
-    event,
-    archivePollRouterParamsSchema(config.public).safeParse,
+  const routerParams = await getValidatedRouterParams(event, (params) =>
+    safeParse(pollParamsSchema(config.public), params),
   );
   if (!routerParams.success) {
     throw createError({
       statusCode: 400,
-      message: routerParams.error.message,
+      message: routerParams.issues.map((issue) => issue.message).join(". "),
     });
   }
 
-  const body = await readValidatedBody(event, archivePollBodySchema.safeParse);
+  const body = await readValidatedBody(event, (body) =>
+    safeParse(archiveSchema, body),
+  );
   if (!body.success) {
     throw createError({
       statusCode: 400,
-      message: body.error.message,
+      message: body.issues.map((issue) => issue.message).join(". "),
     });
   }
 
   const result = await openapi.DELETE("/polls/{pollId}", {
-    params: { path: routerParams.data },
+    params: { path: routerParams.output },
     headers: { Authorization: `Bearer ${session.user.idToken}` },
-    body: body.data,
+    body: body.output,
   });
   if (result.error) {
     throw createError({

@@ -1,6 +1,8 @@
+import { parse } from "valibot";
+
 import envSchema from "./schemas/env";
 
-const env = envSchema.parse(process.env);
+const env = parse(envSchema, process.env);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -54,5 +56,13 @@ export default defineNuxtConfig({
   },
   alias: {
     cookie: "cookie",
+  },
+  imports: {
+    dirs: ["./schemas"],
+  },
+  nitro: {
+    imports: {
+      dirs: ["./schemas"],
+    },
   },
 });
