@@ -8,6 +8,10 @@ const pollId = params.pollId as string;
 const { query, time, totalVotes } = usePoll({ pollId });
 onServerPrefetch(async () => await query.suspense());
 
+useHead({
+  title: `Results | ${query.data.value?.prompt ?? "Loading..."}`,
+});
+
 const { mutation: archive } = useArchive({ pollId });
 const { mutation: duration } = useDuration({ pollId });
 </script>

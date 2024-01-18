@@ -9,8 +9,8 @@ const isLandingPage = computed(
 </script>
 
 <template>
-  <UContainer class="mb-32">
-    <div class="flex w-full items-center justify-between pb-6 pt-3 sm:pb-12">
+  <UContainer class="flex min-h-screen flex-col">
+    <header class="flex w-full items-center justify-between pb-6 pt-3 sm:pb-12">
       <NuxtLink to="/" class="text-2xl">
         <span class="dark:text-primary-50/75 text-primary-950/75 font-light"
           >Pseudo</span
@@ -68,17 +68,47 @@ const isLandingPage = computed(
       >
         Login
       </UButton>
-    </div>
+    </header>
 
     <main
       :class="
         cn(
-          'mx-auto max-w-xl gap-12 md:max-w-2xl lg:max-w-3xl',
-          isLandingPage && ' max-w-full md:max-w-full lg:max-w-full',
+          'mx-auto mb-32 w-full max-w-xl flex-grow gap-12 md:max-w-2xl lg:max-w-3xl',
+          isLandingPage && 'max-w-full md:max-w-full lg:max-w-full',
         )
       "
     >
       <slot></slot>
     </main>
+
+    <footer class="flex w-full items-center justify-between pb-3 pt-6 sm:pt-12">
+      <div class="flex items-center justify-center gap-3">
+        <UIcon
+          name="i-lucide-code-2"
+          class="dark:text-primary-50/75 text-primary-950/75 h-6 w-6"
+        ></UIcon>
+
+        <p class="dark:text-primary-50/75 text-primary-950/75 text-sm">
+          Developed by
+          <NuxtLink
+            class="font-bold hover:underline"
+            href="https://github.com/dscott1008"
+            target="_blank"
+            >Declan L. Scott</NuxtLink
+          >
+        </p>
+      </div>
+
+      <UButton
+        to="https://github.com/dscott1008/pseudopoll"
+        target="_blank"
+        square
+        variant="ghost"
+        color="gray"
+        icon="i-lucide-github"
+        size="lg"
+        class="dark:text-primary-50/75 text-primary-950/75"
+      ></UButton>
+    </footer>
   </UContainer>
 </template>

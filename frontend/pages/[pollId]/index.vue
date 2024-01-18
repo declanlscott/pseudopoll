@@ -9,6 +9,10 @@ const pollId = params.pollId as string;
 const { query, time } = usePoll({ pollId });
 onServerPrefetch(async () => await query.suspense());
 
+useHead({
+  title: query.data.value?.prompt ?? "Loading...",
+});
+
 const { mutation: vote } = useVote({ pollId });
 
 const config = useRuntimeConfig();

@@ -32,4 +32,6 @@ export type Payload = PollTopicPayload | VoteTopicPayload;
 
 export type Feature = {
   title: string;
+  description: string;
+  icon: string;
 };

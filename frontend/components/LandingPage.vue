@@ -4,6 +4,6 @@
   <div class="flex flex-col gap-12">
     <HeroSection></HeroSection>
 
-    <!-- <FeaturesSection></FeaturesSection> -->
+    <FeaturesSection></FeaturesSection>
   </div>
 </template>

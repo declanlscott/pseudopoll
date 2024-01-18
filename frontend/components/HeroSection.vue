@@ -45,7 +45,7 @@ const { signIn } = useAuth();
           color="gray"
           icon="i-lucide-sparkle"
           :ui="{ rounded: 'rounded-full' }"
-          class="relative transition-colors duration-75 dark:hover:bg-black"
+          class="relative transition-colors duration-200 dark:hover:bg-black"
           @click="signIn('google')"
         >
           Get Started
