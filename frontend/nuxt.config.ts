@@ -30,7 +30,7 @@ export default defineNuxtConfig({
     },
     public: {
       authJs: {
-        // baseUrl: env.AUTH_ORIGIN,
+        baseUrl: env.NUXT_PUBLIC_AUTHJS_BASE_URL,
         verifyClientOnEveryRequest: true,
       },
       promptMinLength: env.NUXT_PUBLIC_PROMPT_MIN_LENGTH,
