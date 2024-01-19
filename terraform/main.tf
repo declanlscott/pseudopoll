@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/archive"
       version = "2.4.1"
     }
+
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "4.22.0"
+    }
   }
 
   ###################################################################
@@ -31,6 +36,10 @@ provider "aws" {
 }
 
 provider "archive" {
+  # Configuration options
+}
+
+provider "cloudflare" {
   # Configuration options
 }
 
