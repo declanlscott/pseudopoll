@@ -26,9 +26,12 @@ export default defineEventHandler(async (event) => {
   }
   console.log("routerParams", routerParams);
 
-  const body = await readValidatedBody(event, (body) =>
-    safeParse(archiveSchema, body),
-  );
+  const body = await readValidatedBody(event, (body) => {
+    console.log("unknown body", body);
+    const result = safeParse(archiveSchema, body);
+    console.log("result", result);
+    return result;
+  });
   if (!body.success) {
     console.log("Bad request body", body);
     throw createError({
