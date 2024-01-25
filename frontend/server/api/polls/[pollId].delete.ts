@@ -26,6 +26,10 @@ export default defineEventHandler(async (event) => {
   }
   console.log("routerParams", routerParams);
 
+  console.log("request body", event._requestBody?.toString());
+  const unknownBody = await readBody(event);
+  console.log("unknownBody", unknownBody);
+
   const body = await readValidatedBody(event, (body) => {
     console.log("unknown body", body);
     const result = safeParse(archiveSchema, body);
