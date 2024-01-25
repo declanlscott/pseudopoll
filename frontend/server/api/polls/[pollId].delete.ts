@@ -1,7 +1,6 @@
 import { safeParse } from "valibot";
 
 export default defineEventHandler(async (event) => {
-  console.log("DELETE /polls/{pollId}");
   console.log("event", event);
   console.log("headers", getHeaders(event));
   const session = await getServerAuthSession(event);
@@ -43,7 +42,6 @@ export default defineEventHandler(async (event) => {
     params: { path: routerParams.output },
     headers: {
       Authorization: `Bearer ${session.user.idToken}`,
-      "x-real-ip": getHeader(event, "x-real-ip") ?? "",
     },
     body: body.output,
   });
