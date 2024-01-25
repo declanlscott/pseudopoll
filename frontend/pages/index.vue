@@ -3,10 +3,8 @@ const { status } = useAuth();
 
 const config = useRuntimeConfig();
 onMounted(() => {
-  if (!import.meta.env.PROD) {
-    // eslint-disable-next-line no-console
-    console.log(config);
-  }
+  // eslint-disable-next-line no-console
+  console.log(config);
 });
 </script>
 
