@@ -360,10 +360,10 @@ resource "cloudflare_pages_project" "frontend" {
 
     preview {
       environment_variables = {
-        NUXT_API_BASE_URL = ""
+        NUXT_API_BASE_URL = "https://${module.domain.api_domain_name}"
 
         NUXT_AUTH_JS_SECRET = var.auth_js_secret
-        NUXT_AUTH_JS_ORIGIN = ""
+        NUXT_AUTH_JS_ORIGIN = "https://dev.pseudopoll.pages.dev"
 
         NUXT_GOOGLE_CLIENT_ID     = var.google_client_id
         NUXT_GOOGLE_CLIENT_SECRET = var.google_client_secret
@@ -371,7 +371,7 @@ resource "cloudflare_pages_project" "frontend" {
         NUXT_WHITELIST_ENABLED = var.whitelist_enabled
         NUXT_WHITELIST_USERS   = var.whitelist_users
 
-        NUXT_PUBLIC_AUTH_JS_BASE_URL = ""
+        NUXT_PUBLIC_AUTH_JS_BASE_URL = "https://dev.pseudopoll.pages.dev"
 
         NUXT_PUBLIC_NANO_ID_ALPHABET = var.nanoid_alphabet
         NUXT_PUBLIC_NANO_ID_LENGTH   = var.nanoid_length
