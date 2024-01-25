@@ -23,7 +23,7 @@ export default object(
     NUXT_WHITELIST_USERS: transform(string(), (csv) => csv.split(",")),
 
     // Server and client
-    NUXT_PUBLIC_AUTHJS_BASE_URL: string([url()]),
+    NUXT_PUBLIC_AUTH_JS_BASE_URL: string([url()]),
     NUXT_PUBLIC_NANO_ID_ALPHABET: string(),
     NUXT_PUBLIC_NANO_ID_LENGTH: coerce(
       number([integer(), minValue(1)]),
