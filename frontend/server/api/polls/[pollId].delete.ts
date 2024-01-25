@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     params: { path: routerParams.output },
     headers: {
       Authorization: `Bearer ${session.user.idToken}`,
-      "x-real-ip": useRequestHeader("x-real-ip") ?? "",
+      "x-real-ip": getHeader(event, "x-real-ip") ?? "",
     },
     body: body.output,
   });
