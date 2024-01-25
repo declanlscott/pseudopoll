@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/archive"
       version = "2.4.1"
     }
+
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "4.23.0"
+    }
   }
 
   ###################################################################
@@ -32,6 +37,11 @@ provider "aws" {
 
 provider "archive" {
   # Configuration options
+}
+
+provider "cloudflare" {
+  # Configuration options
+  api_token = var.cloudflare_api_token
 }
 
 module "remote_backend" {
@@ -91,7 +101,7 @@ module "api_authorizer" {
   archive_source_file       = "${path.module}/../backend/lambdas/api-authorizer/bin/bootstrap"
   archive_output_path       = "${path.module}/../backend/lambdas/api-authorizer/bin/api-authorizer.zip"
   jwks_uri                  = var.jwks_uri
-  audience                  = var.audience
+  audience                  = var.google_client_id
   token_issuer              = var.token_issuer
   lambda_logging_policy_arn = module.lambda_logging.policy_arn
 }
@@ -285,4 +295,64 @@ module "publisher_microservice" {
 
 data "aws_iot_endpoint" "iot" {
   endpoint_type = "iot:Data-ATS"
+}
+
+resource "cloudflare_pages_project" "frontend" {
+  account_id        = var.cloudflare_account_id
+  name              = "pseudopoll"
+  production_branch = "main"
+
+  source {
+    type = "github"
+    config {
+      owner                         = "dscott1008"
+      repo_name                     = "pseudopoll"
+      production_branch             = "main"
+      pr_comments_enabled           = true
+      deployments_enabled           = true
+      production_deployment_enabled = true
+      preview_deployment_setting    = "custom"
+      preview_branch_includes       = ["preview"]
+      preview_branch_excludes       = ["main"]
+    }
+  }
+
+  build_config {
+    build_command = "pnpm build"
+    root_dir      = "frontend"
+  }
+
+  deployment_configs {
+    production {
+      environment_variables = {
+        NUXT_API_BASE_URL = "https://${module.domain.api_domain_name}"
+
+        NUXT_AUTH_JS_SECRET = var.auth_js_secret
+        NUXT_AUTH_JS_ORIGIN = "https://${var.domain_name}"
+
+        NUXT_GOOGLE_CLIENT_ID     = var.google_client_id
+        NUXT_GOOGLE_CLIENT_SECRET = var.google_client_secret
+
+        NUXT_WHITELIST_ENABLED = var.whitelist_enabled
+        NUXT_WHITELIST_USERS   = var.whitelist_users
+
+        NUXT_PUBLIC_AUTH_JS_BASE_URL = "https://${var.domain_name}"
+
+        NUXT_PUBLIC_NANO_ID_ALPHABET = var.nanoid_alphabet
+        NUXT_PUBLIC_NANO_ID_LENGTH   = var.nanoid_length
+
+        NUXT_PUBLIC_PROMPT_MIN_LENGTH = var.prompt_min_length
+        NUXT_PUBLIC_PROMPT_MAX_LENGTH = var.prompt_max_length
+        NUXT_PUBLIC_OPTION_MIN_LENGTH = var.option_min_length
+        NUXT_PUBLIC_OPTION_MAX_LENGTH = var.option_max_length
+        NUXT_PUBLIC_MIN_OPTIONS       = var.min_options
+        NUXT_PUBLIC_MAX_OPTIONS       = var.max_options
+        NUXT_PUBLIC_MIN_DURATION      = var.min_duration
+        NUXT_PUBLIC_MAX_DURATION      = var.max_duration
+
+        NUXT_PUBLIC_IOT_ENDPOINT               = data.aws_iot_endpoint.iot.endpoint_address
+        NUXT_PUBLIC_IOT_CUSTOM_AUTHORIZER_NAME = var.iot_custom_authorizer_name
+      }
+    }
+  }
 }

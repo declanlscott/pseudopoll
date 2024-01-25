@@ -15,14 +15,45 @@ variable "cloudflare_zone_id" {
   sensitive   = true
 }
 
+variable "cloudflare_account_id" {
+  description = "Cloudflare account ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "auth_js_secret" {
+  description = "Secret used to sign JWTs"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_client_id" {
+  description = "Google OAuth client ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "whitelist_enabled" {
+  description = "Whether to enable the whitelist"
+  type        = bool
+  default     = false
+}
+
+variable "whitelist_users" {
+  description = "CSV of user IDs that are allowed to log in"
+  type        = string
+  sensitive   = true
+}
+
 variable "jwks_uri" {
   type    = string
   default = "https://www.googleapis.com/oauth2/v3/certs"
-}
-
-variable "audience" {
-  type      = string
-  sensitive = true
 }
 
 variable "token_issuer" {
