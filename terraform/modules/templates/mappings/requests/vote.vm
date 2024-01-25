@@ -3,6 +3,7 @@
 #set($parameters.optionId = $input.params('optionId'))
 #set($parameters.userId = $context.authorizer.principalId)
 #set($parameters.sourceIp = $context.identity.sourceIp)
+#set($parameters.realIp = $input.params('x-real-ip'))
 #set($parameters.requestTimeEpoch = $context.requestTimeEpoch)
 #set($parameters.requestId = $context.extendedRequestId)
 #set($body = "{")

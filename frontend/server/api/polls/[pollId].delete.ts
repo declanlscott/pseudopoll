@@ -32,7 +32,10 @@ export default defineEventHandler(async (event) => {
 
   const result = await openapi.DELETE("/polls/{pollId}", {
     params: { path: routerParams.output },
-    headers: { Authorization: `Bearer ${session.user.idToken}` },
+    headers: {
+      Authorization: `Bearer ${session.user.idToken}`,
+      "x-real-ip": useRequestHeader("x-real-ip") ?? "",
+    },
     body: body.output,
   });
   if (result.error) {
