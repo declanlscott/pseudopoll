@@ -63,3 +63,72 @@ resource "cloudflare_record" "api" {
   value   = aws_api_gateway_domain_name.api.regional_domain_name
   proxied = true
 }
+
+resource "cloudflare_pages_domain" "frontend" {
+  account_id   = var.cloudflare_account_id
+  project_name = var.cloudflare_pages_project_name
+  domain       = var.domain_name
+}
+
+resource "cloudflare_record" "frontend" {
+  zone_id = var.cloudflare_zone_id
+
+  name  = "@"
+  value = "${var.cloudflare_pages_project_name}.pages.dev"
+  type  = "CNAME"
+}
+
+resource "cloudflare_record" "www" {
+  zone_id = var.cloudflare_zone_id
+
+  name    = "www"
+  value   = "100::"
+  type    = "AAAA"
+  proxied = true
+}
+
+resource "cloudflare_list" "list" {
+  account_id = var.cloudflare_account_id
+  name       = "pseudopoll"
+  kind       = "redirect"
+}
+
+resource "cloudflare_list_item" "www" {
+  account_id = var.cloudflare_account_id
+  list_id    = cloudflare_list.list.id
+
+  redirect {
+    source_url            = "www.${var.domain_name}/"
+    target_url            = "https://${var.domain_name}/"
+    status_code           = 301
+    preserve_query_string = true
+    include_subdomains    = false
+    subpath_matching      = true
+    preserve_path_suffix  = true
+  }
+}
+
+# TODO: Figure out API token permissions for this to work
+# in the meantime, we'll just use the Cloudflare dashboard
+# to create the bulk redirect rule
+# resource "cloudflare_ruleset" "redirects" {
+#   zone_id = var.cloudflare_zone_id
+#   name    = "pseudopoll"
+#   kind    = "root"
+#   phase   = "http_request_redirect"
+
+#   rules {
+#     action      = "redirect"
+#     description = "Apply redirects from list"
+#     enabled     = true
+
+#     action_parameters {
+#       from_list {
+#         name = cloudflare_list.list.name
+#         key  = "http.request.full_uri"
+#       }
+#     }
+
+#     expression = "http.request.full_uri in $pseudopoll"
+#   }
+# }

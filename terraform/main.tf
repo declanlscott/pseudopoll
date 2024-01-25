@@ -66,10 +66,12 @@ locals {
 }
 
 module "domain" {
-  source               = "./modules/domain"
-  cloudflare_api_token = var.cloudflare_api_token
-  cloudflare_zone_id   = var.cloudflare_zone_id
-  domain_name          = var.domain_name
+  source                        = "./modules/domain"
+  cloudflare_api_token          = var.cloudflare_api_token
+  cloudflare_zone_id            = var.cloudflare_zone_id
+  cloudflare_account_id         = var.cloudflare_account_id
+  domain_name                   = var.domain_name
+  cloudflare_pages_project_name = cloudflare_pages_project.frontend.name
 }
 
 module "api_gateway_iam" {
@@ -318,8 +320,9 @@ resource "cloudflare_pages_project" "frontend" {
   }
 
   build_config {
-    build_command = "pnpm build"
-    root_dir      = "frontend"
+    build_command   = "pnpm build"
+    root_dir        = "frontend"
+    destination_dir = "dist"
   }
 
   deployment_configs {
