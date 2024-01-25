@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
       message: routerParams.issues.map((issue) => issue.message).join(". "),
     });
   }
+  console.log("routerParams", routerParams);
 
   const body = await readValidatedBody(event, (body) =>
     safeParse(archiveSchema, body),
@@ -35,6 +36,7 @@ export default defineEventHandler(async (event) => {
       message: body.issues.map((issue) => issue.message).join(". "),
     });
   }
+  console.log("body", body);
 
   const result = await openapi.DELETE("/polls/{pollId}", {
     params: { path: routerParams.output },
