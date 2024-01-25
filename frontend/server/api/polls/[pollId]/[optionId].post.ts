@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
       },
       headers: session
         ? { Authorization: `Bearer ${session.user.idToken}` }
-        : {},
+        : { "x-real-ip": getHeader(event, "x-real-ip") ?? "" },
     },
   );
   if (result.error) {
