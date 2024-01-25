@@ -2,7 +2,7 @@ import { parse } from "valibot";
 
 import envSchema from "./schemas/env";
 
-const env = parse(envSchema, process.env);
+const env = parse(envSchema, import.meta.env);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
