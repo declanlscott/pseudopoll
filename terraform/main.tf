@@ -2,17 +2,12 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.31.0"
+      version = "5.33.0"
     }
 
     archive = {
       source  = "hashicorp/archive"
       version = "2.4.1"
-    }
-
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "4.22.0"
     }
   }
 
@@ -39,10 +34,6 @@ provider "archive" {
   # Configuration options
 }
 
-provider "cloudflare" {
-  # Configuration options
-}
-
 module "remote_backend" {
   source = "./modules/remote-backend"
 }
@@ -64,8 +55,11 @@ locals {
   vote_failed_detail_type           = "VoteFailed"
 }
 
-resource "aws_route53_zone" "zone" {
-  name = var.domain_name
+module "domain" {
+  source               = "./modules/domain"
+  cloudflare_api_token = var.cloudflare_api_token
+  cloudflare_zone_id   = var.cloudflare_zone_id
+  domain_name          = var.domain_name
 }
 
 module "api_gateway_iam" {
@@ -73,10 +67,9 @@ module "api_gateway_iam" {
 }
 
 module "rest_api" {
-  source      = "./modules/api-gateway"
-  name        = "pseudopoll-rest-api"
-  domain_name = var.domain_name
-  zone_id     = aws_route53_zone.zone.zone_id
+  source          = "./modules/api-gateway"
+  name            = "pseudopoll-rest-api"
+  api_domain_name = module.domain.api_domain_name
 
   redeployment_trigger_hashes = concat([
     module.api_authorizer.resources_hash,

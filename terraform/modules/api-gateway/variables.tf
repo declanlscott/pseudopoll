@@ -8,12 +8,7 @@ variable "redeployment_trigger_hashes" {
   type        = list(string)
 }
 
-variable "domain_name" {
-  description = "'api' will be the subdomain of this domain (e.g. api.domain.com)"
-  type        = string
-}
-
-variable "zone_id" {
-  description = "Route53 zone ID for the domain"
+variable "api_domain_name" {
+  description = "Domain name of the API."
   type        = string
 }
