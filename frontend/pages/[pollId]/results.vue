@@ -76,7 +76,7 @@ const { mutation: duration } = useDuration({ pollId });
               icon="i-lucide-timer-off"
               color="gray"
               :loading="duration.isPending.value"
-              @click="duration.mutate({ duration: -1 })"
+              @click="duration.mutate({ value: -1 })"
             ></UButton>
           </UTooltip>
 
@@ -89,9 +89,7 @@ const { mutation: duration } = useDuration({ pollId });
               "
               color="gray"
               :loading="archive.isPending.value"
-              @click="
-                archive.mutate({ isArchived: !query.data.value?.isArchived })
-              "
+              @click="archive.mutate({ value: !query.data.value?.isArchived })"
             ></UButton>
           </UTooltip>
         </div>

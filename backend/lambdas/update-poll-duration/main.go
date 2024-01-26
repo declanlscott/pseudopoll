@@ -21,7 +21,7 @@ import (
 )
 
 type Body struct {
-	Duration int `json:"duration"`
+	Value int `json:"value"`
 }
 
 type DdbPoll struct {
@@ -75,7 +75,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		), nil
 	}
 
-	if requestBody.Duration < 1 && requestBody.Duration != -1 {
+	if requestBody.Value < 1 && requestBody.Value != -1 {
 		err := errors.New("duration must be greater than 0 or -1 to close now")
 		return logAndReturn(
 			events.APIGatewayProxyResponse{
@@ -156,8 +156,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	requestTime := time.UnixMilli(request.RequestContext.RequestTimeEpoch)
 	var newExpirationTime time.Time
 	var duration int
-	if requestBody.Duration != -1 {
-		newExpirationTime = createdAt.Add(time.Duration(requestBody.Duration) * time.Second)
+	if requestBody.Value != -1 {
+		newExpirationTime = createdAt.Add(time.Duration(requestBody.Value) * time.Second)
 
 		if newExpirationTime.Before(requestTime) {
 			err = errors.New(
@@ -227,7 +227,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	responseBody, err := json.Marshal(Body{
-		Duration: duration,
+		Value: duration,
 	})
 	if err != nil {
 		return logAndReturn(

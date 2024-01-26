@@ -162,7 +162,7 @@ export default defineNuxtPlugin(() => {
 });
 
 function log(message: string, error?: Error, ...args: unknown[]) {
-  if (process.env.NODE_ENV === "production") {
+  if (import.meta.env.PROD) {
     return;
   }
 

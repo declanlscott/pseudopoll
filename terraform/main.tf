@@ -314,7 +314,7 @@ resource "cloudflare_pages_project" "frontend" {
       deployments_enabled           = true
       production_deployment_enabled = true
       preview_deployment_setting    = "custom"
-      preview_branch_includes       = ["preview"]
+      preview_branch_includes       = ["dev", "preview"]
       preview_branch_excludes       = ["main"]
     }
   }
@@ -340,6 +340,38 @@ resource "cloudflare_pages_project" "frontend" {
         NUXT_WHITELIST_USERS   = var.whitelist_users
 
         NUXT_PUBLIC_AUTH_JS_BASE_URL = "https://${var.domain_name}"
+
+        NUXT_PUBLIC_NANO_ID_ALPHABET = var.nanoid_alphabet
+        NUXT_PUBLIC_NANO_ID_LENGTH   = var.nanoid_length
+
+        NUXT_PUBLIC_PROMPT_MIN_LENGTH = var.prompt_min_length
+        NUXT_PUBLIC_PROMPT_MAX_LENGTH = var.prompt_max_length
+        NUXT_PUBLIC_OPTION_MIN_LENGTH = var.option_min_length
+        NUXT_PUBLIC_OPTION_MAX_LENGTH = var.option_max_length
+        NUXT_PUBLIC_MIN_OPTIONS       = var.min_options
+        NUXT_PUBLIC_MAX_OPTIONS       = var.max_options
+        NUXT_PUBLIC_MIN_DURATION      = var.min_duration
+        NUXT_PUBLIC_MAX_DURATION      = var.max_duration
+
+        NUXT_PUBLIC_IOT_ENDPOINT               = data.aws_iot_endpoint.iot.endpoint_address
+        NUXT_PUBLIC_IOT_CUSTOM_AUTHORIZER_NAME = var.iot_custom_authorizer_name
+      }
+    }
+
+    preview {
+      environment_variables = {
+        NUXT_API_BASE_URL = "https://${module.domain.api_domain_name}"
+
+        NUXT_AUTH_JS_SECRET = var.auth_js_secret
+        NUXT_AUTH_JS_ORIGIN = "https://dev.pseudopoll.pages.dev"
+
+        NUXT_GOOGLE_CLIENT_ID     = var.google_client_id
+        NUXT_GOOGLE_CLIENT_SECRET = var.google_client_secret
+
+        NUXT_WHITELIST_ENABLED = var.whitelist_enabled
+        NUXT_WHITELIST_USERS   = var.whitelist_users
+
+        NUXT_PUBLIC_AUTH_JS_BASE_URL = "https://dev.pseudopoll.pages.dev"
 
         NUXT_PUBLIC_NANO_ID_ALPHABET = var.nanoid_alphabet
         NUXT_PUBLIC_NANO_ID_LENGTH   = var.nanoid_length

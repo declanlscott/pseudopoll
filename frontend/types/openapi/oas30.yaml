@@ -1,130 +1,11 @@
 openapi: "3.0.1"
 info:
   title: "pseudopoll-rest-api"
-  version: "2024-01-13T06:00:04Z"
+  version: "2024-01-26T19:26:38Z"
 servers:
 - url: "https://api.pseudopoll.com"
 paths:
-  /polls/{pollId}/{optionId}:
-    post:
-      parameters:
-      - name: "pollId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "optionId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      responses:
-        "202":
-          description: "202 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VoteAccepted"
-      security:
-      - pseudopoll-api-authorizer: []
-      x-amazon-apigateway-integration:
-        type: "aws"
-        credentials: "arn:aws:iam::981543223421:role/pseudopoll-api-gateway-role"
-        httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-2:sqs:path/pseudopoll-vote-queue"
-        responses:
-          ^2[0-9][0-9]:
-            statusCode: "202"
-            responseTemplates:
-              application/json: "{\n  \"message\": \"Vote queued.\",\n  \"requestId\"\
-                : \"$context.extendedRequestId\"\n}\n"
-        requestParameters:
-          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
-        requestTemplates:
-          application/json: "#set($parameters = $input.path('$'))\n#set($parameters.pollId\
-            \ = $input.params('pollId'))\n#set($parameters.optionId = $input.params('optionId'))\n\
-            #set($parameters.userId = $context.authorizer.principalId)\n#set($parameters.sourceIp\
-            \ = $context.identity.sourceIp)\n#set($parameters.requestTimeEpoch = $context.requestTimeEpoch)\n\
-            #set($parameters.requestId = $context.extendedRequestId)\n#set($body =\
-            \ \"{\")\n#foreach($k in $parameters.keySet())\n#set($body = $body + \"\
-            \"\"$k\"\": \"\"\" + $util.escapeJavaScript($parameters.get($k)) + \"\"\
-            \", \")\n#end\n#set($body = $body + \"}\")\nAction=SendMessage&MessageBody=$body.replaceAll(\"\
-            , }\", \"}\")\n"
-        passthroughBehavior: "never"
-        timeoutInMillis: 29000
-  /polls/{pollId}:
-    get:
-      parameters:
-      - name: "pollId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      responses:
-        "500":
-          description: "500 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "200":
-          description: "200 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Poll"
-        "403":
-          description: "403 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-      security:
-      - pseudopoll-api-authorizer: []
-      x-amazon-apigateway-integration:
-        type: "aws_proxy"
-        httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-get-poll/invocations"
-        passthroughBehavior: "when_no_match"
-        timeoutInMillis: 29000
-    delete:
-      parameters:
-      - name: "pollId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ArchivePoll"
-        required: true
-      responses:
-        "400":
-          description: "400 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "500":
-          description: "500 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "204":
-          description: "204 response"
-          content: {}
-      security:
-      - pseudopoll-api-authorizer: []
-      x-amazon-apigateway-request-validator: "archive-poll-validator"
-      x-amazon-apigateway-integration:
-        type: "aws_proxy"
-        httpMethod: "POST"
-        uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-archive-poll/invocations"
-        passthroughBehavior: "when_no_match"
-        timeoutInMillis: 29000
+  /polls/{pollId}/duration:
     patch:
       parameters:
       - name: "pollId"
@@ -170,6 +51,127 @@ paths:
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-update-poll-duration/invocations"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+  /polls/{pollId}/archive:
+    patch:
+      parameters:
+      - name: "pollId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArchivePoll"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "500 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "204":
+          description: "204 response"
+          content: {}
+      security:
+      - pseudopoll-api-authorizer: []
+      x-amazon-apigateway-request-validator: "archive-poll-validator"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-archive-poll/invocations"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+  /polls/{pollId}/{optionId}:
+    post:
+      parameters:
+      - name: "pollId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "optionId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "202":
+          description: "202 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteAccepted"
+      security:
+      - pseudopoll-api-authorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws"
+        credentials: "arn:aws:iam::981543223421:role/pseudopoll-api-gateway-role"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-2:sqs:path/pseudopoll-vote-queue"
+        responses:
+          ^2[0-9][0-9]:
+            statusCode: "202"
+            responseTemplates:
+              application/json: "{\n  \"message\": \"Vote queued.\",\n  \"requestId\"\
+                : \"$context.extendedRequestId\"\n}\n"
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+        requestTemplates:
+          application/json: "#set($parameters = $input.path('$'))\n#set($parameters.pollId\
+            \ = $input.params('pollId'))\n#set($parameters.optionId = $input.params('optionId'))\n\
+            #set($parameters.userId = $context.authorizer.principalId)\n#set($parameters.userIp\
+            \ = $input.params('x-user-ip'))\n#set($parameters.requestTimeEpoch = $context.requestTimeEpoch)\n\
+            #set($parameters.requestId = $context.extendedRequestId)\n#set($body =\
+            \ \"{\")\n#foreach($k in $parameters.keySet())\n#set($body = $body + \"\
+            \"\"$k\"\": \"\"\" + $util.escapeJavaScript($parameters.get($k)) + \"\"\
+            \", \")\n#end\n#set($body = $body + \"}\")\nAction=SendMessage&MessageBody=$body.replaceAll(\"\
+            , }\", \"}\")\n"
+        passthroughBehavior: "never"
+        timeoutInMillis: 29000
+  /polls/{pollId}:
+    get:
+      parameters:
+      - name: "pollId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "500":
+          description: "500 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Poll"
+        "403":
+          description: "403 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - pseudopoll-api-authorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:981543223421:function:pseudopoll-get-poll/invocations"
         passthroughBehavior: "when_no_match"
         timeoutInMillis: 29000
   /public/polls/{pollId}:
@@ -311,8 +313,8 @@ paths:
         requestTemplates:
           application/json: "#set($parameters = $input.path('$'))\n#set($parameters.pollId\
             \ = $input.params('pollId'))\n#set($parameters.optionId = $input.params('optionId'))\n\
-            #set($parameters.userId = $context.authorizer.principalId)\n#set($parameters.sourceIp\
-            \ = $context.identity.sourceIp)\n#set($parameters.requestTimeEpoch = $context.requestTimeEpoch)\n\
+            #set($parameters.userId = $context.authorizer.principalId)\n#set($parameters.userIp\
+            \ = $input.params('x-user-ip'))\n#set($parameters.requestTimeEpoch = $context.requestTimeEpoch)\n\
             #set($parameters.requestId = $context.extendedRequestId)\n#set($body =\
             \ \"{\")\n#foreach($k in $parameters.keySet())\n#set($body = $body + \"\
             \"\"$k\"\": \"\"\" + $util.escapeJavaScript($parameters.get($k)) + \"\"\
@@ -335,10 +337,10 @@ components:
     ArchivePoll:
       title: "Archive Poll Schema"
       required:
-      - "isArchived"
+      - "value"
       type: "object"
       properties:
-        isArchived:
+        value:
           type: "boolean"
     CreatePoll:
       title: "Create Poll Schema"
@@ -360,7 +362,7 @@ components:
           type: "array"
           description: "The options to vote on"
           items:
-            maxLength: 140
+            maxLength: 35
             minLength: 1
             type: "string"
         duration:
@@ -456,10 +458,10 @@ components:
     UpdatePollDuration:
       title: "Update Poll Duration Schema"
       required:
-      - "duration"
+      - "value"
       type: "object"
       properties:
-        duration:
+        value:
           minimum: -1
           type: "number"
     MyPolls:
@@ -509,6 +511,12 @@ components:
         authorizerCredentials: "arn:aws:iam::981543223421:role/api_gateway_authorizer_invocation_role"
         authorizerResultTtlInSeconds: 0
 x-amazon-apigateway-gateway-responses:
+  DEFAULT_4XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
+      gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
   DEFAULT_5XX:
     responseParameters:
       gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
@@ -517,12 +525,6 @@ x-amazon-apigateway-gateway-responses:
       gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     responseTemplates:
       application/json: "{\"message\":$context.error.messageString}"
-  DEFAULT_4XX:
-    responseParameters:
-      gatewayresponse.header.Access-Control-Allow-Methods: "'OPTIONS'"
-      gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
-      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
 x-amazon-apigateway-request-validators:
   archive-poll-validator:
     validateRequestParameters: false

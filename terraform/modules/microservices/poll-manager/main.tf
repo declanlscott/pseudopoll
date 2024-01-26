@@ -28,6 +28,18 @@ resource "aws_api_gateway_resource" "public_poll" {
   path_part   = "{pollId}"
 }
 
+resource "aws_api_gateway_resource" "archive" {
+  rest_api_id = var.rest_api_id
+  parent_id   = aws_api_gateway_resource.poll.id
+  path_part   = "archive"
+}
+
+resource "aws_api_gateway_resource" "duration" {
+  rest_api_id = var.rest_api_id
+  parent_id   = aws_api_gateway_resource.poll.id
+  path_part   = "duration"
+}
+
 resource "aws_api_gateway_request_validator" "create_poll" {
   name                  = "create-poll-validator"
   rest_api_id           = var.rest_api_id
@@ -168,8 +180,8 @@ resource "aws_api_gateway_request_validator" "archive_poll" {
 
 resource "aws_api_gateway_method" "archive_poll" {
   rest_api_id = var.rest_api_id
-  http_method = "DELETE"
-  resource_id = aws_api_gateway_resource.poll.id
+  http_method = "PATCH"
+  resource_id = aws_api_gateway_resource.archive.id
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
@@ -184,7 +196,7 @@ resource "aws_api_gateway_method" "archive_poll" {
 resource "aws_api_gateway_method_settings" "archive_poll" {
   rest_api_id = var.rest_api_id
   stage_name  = var.stage_name
-  method_path = "${aws_api_gateway_resource.poll.path_part}/${aws_api_gateway_method.archive_poll.http_method}"
+  method_path = "${aws_api_gateway_resource.archive.path_part}/${aws_api_gateway_method.archive_poll.http_method}"
 
   settings {
     logging_level      = "INFO"
@@ -195,7 +207,7 @@ resource "aws_api_gateway_method_settings" "archive_poll" {
 
 resource "aws_api_gateway_integration" "archive_poll" {
   rest_api_id             = var.rest_api_id
-  resource_id             = aws_api_gateway_resource.poll.id
+  resource_id             = aws_api_gateway_resource.archive.id
   http_method             = aws_api_gateway_method.archive_poll.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
@@ -208,7 +220,7 @@ resource "aws_lambda_permission" "archive_poll_api_lambda" {
   function_name = module.archive_poll_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.archive_poll.http_method}${aws_api_gateway_resource.poll.path}"
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.archive_poll.http_method}${aws_api_gateway_resource.archive.path}"
 }
 
 module "archive_poll_lambda_role" {
@@ -255,14 +267,14 @@ module "archive_poll_lambda" {
 
 resource "aws_api_gateway_method_response" "archive_poll_ok" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.archive.id
   http_method = aws_api_gateway_method.archive_poll.http_method
   status_code = "204"
 }
 
 resource "aws_api_gateway_method_response" "archive_poll_bad_request" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.archive.id
   http_method = aws_api_gateway_method.archive_poll.http_method
   status_code = "400"
 
@@ -273,7 +285,7 @@ resource "aws_api_gateway_method_response" "archive_poll_bad_request" {
 
 resource "aws_api_gateway_method_response" "archive_poll_internal_server_error" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.archive.id
   http_method = aws_api_gateway_method.archive_poll.http_method
   status_code = "500"
 
@@ -411,7 +423,7 @@ resource "aws_api_gateway_request_validator" "update_poll_duration" {
 resource "aws_api_gateway_method" "update_poll_duration" {
   rest_api_id = var.rest_api_id
   http_method = "PATCH"
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.duration.id
 
   authorization = "CUSTOM"
   authorizer_id = var.custom_authorizer_id
@@ -426,7 +438,7 @@ resource "aws_api_gateway_method" "update_poll_duration" {
 resource "aws_api_gateway_method_settings" "update_poll_duration" {
   rest_api_id = var.rest_api_id
   stage_name  = var.stage_name
-  method_path = "${aws_api_gateway_resource.poll.path_part}/${aws_api_gateway_method.update_poll_duration.http_method}"
+  method_path = "${aws_api_gateway_resource.duration.path_part}/${aws_api_gateway_method.update_poll_duration.http_method}"
 
   settings {
     logging_level      = "INFO"
@@ -437,7 +449,7 @@ resource "aws_api_gateway_method_settings" "update_poll_duration" {
 
 resource "aws_api_gateway_integration" "update_poll_duration" {
   rest_api_id             = var.rest_api_id
-  resource_id             = aws_api_gateway_resource.poll.id
+  resource_id             = aws_api_gateway_resource.duration.id
   http_method             = aws_api_gateway_method.update_poll_duration.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
@@ -450,7 +462,7 @@ resource "aws_lambda_permission" "update_poll_duration_api_lambda" {
   function_name = module.update_poll_duration_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.update_poll_duration.http_method}${aws_api_gateway_resource.poll.path}"
+  source_arn = "${var.rest_api_execution_arn}/*/${aws_api_gateway_method.update_poll_duration.http_method}${aws_api_gateway_resource.duration.path}"
 }
 
 module "update_poll_duration_lambda_role" {
@@ -500,7 +512,7 @@ module "update_poll_duration_lambda" {
 
 resource "aws_api_gateway_method_response" "update_poll_duration_ok" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.duration.id
   http_method = aws_api_gateway_method.update_poll_duration.http_method
   status_code = "200"
 
@@ -511,7 +523,7 @@ resource "aws_api_gateway_method_response" "update_poll_duration_ok" {
 
 resource "aws_api_gateway_method_response" "update_poll_duration_bad_request" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.duration.id
   http_method = aws_api_gateway_method.update_poll_duration.http_method
   status_code = "400"
 
@@ -522,7 +534,7 @@ resource "aws_api_gateway_method_response" "update_poll_duration_bad_request" {
 
 resource "aws_api_gateway_method_response" "update_poll_duration_internal_server_error" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.duration.id
   http_method = aws_api_gateway_method.update_poll_duration.http_method
   status_code = "500"
 
@@ -533,7 +545,7 @@ resource "aws_api_gateway_method_response" "update_poll_duration_internal_server
 
 resource "aws_api_gateway_method_response" "update_poll_duration_not_found" {
   rest_api_id = var.rest_api_id
-  resource_id = aws_api_gateway_resource.poll.id
+  resource_id = aws_api_gateway_resource.duration.id
   http_method = aws_api_gateway_method.update_poll_duration.http_method
   status_code = "404"
 

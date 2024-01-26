@@ -25,7 +25,7 @@ type MessageBody struct {
 	OptionId         string `json:"optionId"`
 	PollId           string `json:"pollId"`
 	UserId           string `json:"userId"`
-	SourceIp         string `json:"sourceIp"`
+	UserIp           string `json:"userIp"`
 	RequestTimeEpoch string `json:"requestTimeEpoch"`
 	RequestId        string `json:"requestId"`
 }
@@ -116,7 +116,7 @@ func handler(ctx context.Context, event events.SQSEvent) {
 		if messageBody.UserId != "" {
 			voterId = messageBody.UserId
 		} else {
-			voterId = messageBody.SourceIp
+			voterId = messageBody.UserIp
 		}
 
 		requestTimeEpoch, err := strconv.ParseInt(messageBody.RequestTimeEpoch, 10, 64)

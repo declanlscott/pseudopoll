@@ -1,6 +1,7 @@
 import {
   array,
   boolean,
+  coerce,
   integer,
   intersect,
   literal,
@@ -37,17 +38,20 @@ const nanoIdSchema = ({ nanoId }: PublicRuntimeConfig) =>
   ]);
 
 const durationSchema = ({ minDuration, maxDuration }: PublicRuntimeConfig) =>
-  number([
-    integer(),
-    minValue(
-      minDuration,
-      `Poll duration should be at least ${pluralize(minDuration, "second")}`,
-    ),
-    maxValue(
-      maxDuration,
-      `Poll duration should be at most ${pluralize(maxDuration, "second")}`,
-    ),
-  ]);
+  coerce(
+    number([
+      integer(),
+      minValue(
+        minDuration,
+        `Poll duration should be at least ${pluralize(minDuration, "second")}`,
+      ),
+      maxValue(
+        maxDuration,
+        `Poll duration should be at most ${pluralize(maxDuration, "second")}`,
+      ),
+    ]),
+    Number,
+  );
 
 export const createPollSchema = (config: PublicRuntimeConfig) =>
   object({
@@ -97,11 +101,7 @@ export const voteParamsSchema = (config: PublicRuntimeConfig) =>
     object({ optionId: nanoIdSchema(config) }),
   ]);
 
-export const archiveSchema = object({
-  isArchived: boolean(),
-});
+export const archiveSchema = object({ value: boolean() });
 
 export const updateDurationSchema = (config: PublicRuntimeConfig) =>
-  object({
-    duration: union([literal(-1), durationSchema(config)]),
-  });
+  object({ value: union([literal(-1), durationSchema(config)]) });

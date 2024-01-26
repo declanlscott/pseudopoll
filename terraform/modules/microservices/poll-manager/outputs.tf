@@ -5,6 +5,8 @@ output "resources_hash" {
     aws_api_gateway_resource.public,
     aws_api_gateway_resource.public_polls,
     aws_api_gateway_resource.public_poll,
+    aws_api_gateway_resource.archive,
+    aws_api_gateway_resource.duration,
     aws_api_gateway_request_validator.create_poll,
     aws_api_gateway_method.create_poll,
     aws_api_gateway_integration.create_poll,

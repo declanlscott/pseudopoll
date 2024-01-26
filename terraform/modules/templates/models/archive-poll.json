@@ -2,9 +2,9 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Archive Poll Schema",
   "type": "object",
-  "required": ["isArchived"],
+  "required": ["value"],
   "properties": {
-    "isArchived": {
+    "value": {
       "type": "boolean"
     }
   }

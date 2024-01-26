@@ -2,9 +2,9 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Update Poll Duration Schema",
   "type": "object",
-  "required": ["duration"],
+  "required": ["value"],
   "properties": {
-    "duration": {
+    "value": {
       "type": "number",
       "minimum": -1
     }
