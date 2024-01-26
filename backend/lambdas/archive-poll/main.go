@@ -17,7 +17,7 @@ import (
 )
 
 type RequestBody struct {
-	IsArchived bool `json:"isArchived"`
+	Value bool `json:"value"`
 }
 
 type Error struct {
@@ -90,7 +90,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				Value: fmt.Sprintf("user|%s", request.RequestContext.Authorizer["sub"].(string)),
 			},
 			":isArchived": &types.AttributeValueMemberBOOL{
-				Value: requestBody.IsArchived,
+				Value: requestBody.Value,
 			},
 		},
 	}

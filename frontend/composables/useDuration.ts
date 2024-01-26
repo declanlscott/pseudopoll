@@ -8,13 +8,13 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
 
   const mutation = useMutation({
     mutationKey: ["duration", pollId],
-    mutationFn: async ({ duration }: { duration: Poll["duration"] }) =>
-      await $fetch(`/api/polls/${pollId}`, {
+    mutationFn: async ({ value }: { value: Poll["duration"] }) =>
+      await $fetch(`/api/polls/${pollId}/duration`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ duration }),
+        body: JSON.stringify({ value }),
       }),
-    onSuccess: ({ duration }) => {
+    onSuccess: ({ value: duration }) => {
       queryClient.setQueryData<Poll>(queryKey, (poll) =>
         poll ? { ...poll, duration } : undefined,
       );

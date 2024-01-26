@@ -8,13 +8,13 @@ export default function ({ pollId }: { pollId: Poll["pollId"] }) {
 
   const mutation = useMutation({
     mutationKey: ["archive", pollId],
-    mutationFn: async ({ isArchived }: { isArchived: Poll["isArchived"] }) =>
-      await $fetch(`/api/polls/${pollId}`, {
-        method: "DELETE",
+    mutationFn: async ({ value }: { value: Poll["isArchived"] }) =>
+      await $fetch(`/api/polls/${pollId}/archive`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isArchived }),
+        body: JSON.stringify({ value }),
       }),
-    onMutate: async ({ isArchived }) => {
+    onMutate: async ({ value: isArchived }) => {
       // Cancel any outgoing refetches
       // (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey });

@@ -101,11 +101,7 @@ export const voteParamsSchema = (config: PublicRuntimeConfig) =>
     object({ optionId: nanoIdSchema(config) }),
   ]);
 
-export const archiveSchema = object({
-  isArchived: boolean(),
-});
+export const archiveSchema = object({ value: boolean() });
 
 export const updateDurationSchema = (config: PublicRuntimeConfig) =>
-  object({
-    duration: union([literal(-1), durationSchema(config)]),
-  });
+  object({ value: union([literal(-1), durationSchema(config)]) });

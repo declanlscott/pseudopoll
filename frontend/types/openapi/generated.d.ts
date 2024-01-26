@@ -5,6 +5,79 @@
 
 
 export interface paths {
+  "/polls/{pollId}/duration": {
+    patch: {
+      parameters: {
+        path: {
+          pollId: string;
+        };
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdatePollDuration"];
+        };
+      };
+      responses: {
+        /** @description 200 response */
+        200: {
+          content: {
+            "application/json": components["schemas"]["UpdatePollDuration"];
+          };
+        };
+        /** @description 400 response */
+        400: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 404 response */
+        404: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 500 response */
+        500: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+      };
+    };
+  };
+  "/polls/{pollId}/archive": {
+    patch: {
+      parameters: {
+        path: {
+          pollId: string;
+        };
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["ArchivePoll"];
+        };
+      };
+      responses: {
+        /** @description 204 response */
+        204: {
+          content: {
+          };
+        };
+        /** @description 400 response */
+        400: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+        /** @description 500 response */
+        500: {
+          content: {
+            "application/json": components["schemas"]["Error"];
+          };
+        };
+      };
+    };
+  };
   "/polls/{pollId}/{optionId}": {
     post: {
       parameters: {
@@ -39,75 +112,6 @@ export interface paths {
         };
         /** @description 403 response */
         403: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-        /** @description 500 response */
-        500: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-      };
-    };
-    delete: {
-      parameters: {
-        path: {
-          pollId: string;
-        };
-      };
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["ArchivePoll"];
-        };
-      };
-      responses: {
-        /** @description 204 response */
-        204: {
-          content: {
-          };
-        };
-        /** @description 400 response */
-        400: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-        /** @description 500 response */
-        500: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-      };
-    };
-    patch: {
-      parameters: {
-        path: {
-          pollId: string;
-        };
-      };
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["UpdatePollDuration"];
-        };
-      };
-      responses: {
-        /** @description 200 response */
-        200: {
-          content: {
-            "application/json": components["schemas"]["UpdatePollDuration"];
-          };
-        };
-        /** @description 400 response */
-        400: {
-          content: {
-            "application/json": components["schemas"]["Error"];
-          };
-        };
-        /** @description 404 response */
-        404: {
           content: {
             "application/json": components["schemas"]["Error"];
           };
@@ -238,7 +242,7 @@ export interface components {
     };
     /** Archive Poll Schema */
     ArchivePoll: {
-      isArchived: boolean;
+      value: boolean;
     };
     /** Create Poll Schema */
     CreatePoll: {
@@ -284,7 +288,7 @@ export interface components {
     };
     /** Update Poll Duration Schema */
     UpdatePollDuration: {
-      duration: number;
+      value: number;
     };
     /** My Poll Schema */
     MyPolls: {
