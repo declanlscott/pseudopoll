@@ -115,8 +115,16 @@ func handler(ctx context.Context, event events.SQSEvent) {
 
 		if messageBody.UserId != "" {
 			voterId = messageBody.UserId
-		} else {
+		} else if messageBody.UserIp != "" {
 			voterId = messageBody.UserIp
+		} else {
+			handleFailure(
+				ctx,
+				errors.New("message must contain either userId or userIp"),
+				messageBody,
+				ebClient,
+			)
+			continue
 		}
 
 		requestTimeEpoch, err := strconv.ParseInt(messageBody.RequestTimeEpoch, 10, 64)
