@@ -307,7 +307,7 @@ resource "cloudflare_pages_project" "frontend" {
   source {
     type = "github"
     config {
-      owner                         = "dscott1008"
+      owner                         = "declanlscott"
       repo_name                     = "pseudopoll"
       production_branch             = "main"
       pr_comments_enabled           = true
