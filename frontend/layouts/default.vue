@@ -92,7 +92,7 @@ const isLandingPage = computed(
           Developed by
           <NuxtLink
             class="font-bold hover:underline"
-            href="https://github.com/dscott1008"
+            href="https://github.com/declanlscott"
             target="_blank"
             >Declan L. Scott</NuxtLink
           >
@@ -100,7 +100,7 @@ const isLandingPage = computed(
       </div>
 
       <UButton
-        to="https://github.com/dscott1008/pseudopoll"
+        to="https://github.com/declanlscott/pseudopoll"
         target="_blank"
         square
         variant="ghost"

@@ -67,6 +67,10 @@ resource "aws_api_gateway_method" "public_post" {
   resource_id = aws_api_gateway_resource.public_option.id
 
   authorization = "NONE"
+
+  request_parameters = {
+    "method.request.header.x-user-ip" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "public_vote" {
