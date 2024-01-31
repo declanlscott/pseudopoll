@@ -1,5 +1,4 @@
 import GoogleProvider from "@auth/core/providers/google";
-// eslint-disable-next-line import/named
 import { getServerSession } from "#auth";
 
 import type { JWT } from "@auth/core/jwt";

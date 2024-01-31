@@ -10,7 +10,10 @@ const config = {
     "plugin:@tanstack/eslint-plugin-query/recommended",
     "prettier",
   ],
-  rules: {},
+  rules: {
+    "import/order": "off",
+    "import/named": "off",
+  },
   ignorePatterns: [".eslintrc.cjs"],
   parser: "vue-eslint-parser",
   parserOptions: {
