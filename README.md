@@ -30,12 +30,15 @@
   - DynamoDB for persistence (single-table design)
     - Streams for change events
   - Choreographed by EventBridge
+  - OpenAPI 3.0 spec
 - Frontend
   - TypeScript
   - Nuxt 3
-    - Vue 3 SPA
-    - Nitro Server (BFF)
-    - Edge-side rendering (ESR) via Cloudflare
+    - Vue 3 Single Page Application (SPA)
+    - Nitro server
+      - Backend For Frontend (BFF)
+      - Typesafe fetch client generated from OpenAPI spec
+    - Edge-Side Rendering (ESR) via Cloudflare
   - Authentication via Google OAuth
   - Nuxt UI
     - Tailwind CSS
