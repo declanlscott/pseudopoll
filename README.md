@@ -26,6 +26,7 @@
     - Poll manager (REST API for CRUD operations)
     - Vote queue (queue-based load leveling)
     - Publisher (MQTT over WebSockets)
+  - JWT authorization
   - DynamoDB for persistence (single-table design)
     - Streams for change events
   - Choreographed by EventBridge
@@ -35,6 +36,7 @@
     - Vue 3 SPA
     - Nitro Server (BFF)
     - Edge-side rendering (ESR) via Cloudflare
+  - Authentication via Google OAuth
   - Nuxt UI
     - Tailwind CSS
 
