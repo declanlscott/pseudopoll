@@ -92,7 +92,7 @@ const isLandingPage = computed(
           Developed by
           <NuxtLink
             class="font-bold hover:underline"
-            href="https://github.com/declanlscott"
+            href="https://declanlscott.com"
             target="_blank"
             >Declan L. Scott</NuxtLink
           >
