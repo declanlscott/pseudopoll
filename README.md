@@ -8,7 +8,7 @@
     - DNS
     - Pages
   - AWS
-    - API Gateway (REST)
+    - API Gateway v1
     - Lambda
     - DynamoDB
     - EventBridge
